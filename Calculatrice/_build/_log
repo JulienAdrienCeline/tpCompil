@@ -1,0 +1,24 @@
+### Starting build.
+# Target: calc_main.ml.depends, tags: { extension:ml, file:calc_main.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules calc_main.ml > calc_main.ml.depends
+# Target: calc_ast.ml.depends, tags: { extension:ml, file:calc_ast.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules calc_ast.ml > calc_ast.ml.depends
+# Target: calc_parser.ml.depends, tags: { extension:ml, file:calc_parser.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules calc_parser.ml > calc_parser.ml.depends
+# Target: calc_ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:calc_ast.cmo, file:calc_ast.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -I +decap -pp pa_ocaml -o calc_ast.cmo calc_ast.ml
+# Target: calc_semantics.ml.depends, tags: { extension:ml, file:calc_semantics.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules calc_semantics.ml > calc_semantics.ml.depends
+# Target: calc_expr_sem.ml.depends, tags: { extension:ml, file:calc_expr_sem.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules calc_expr_sem.ml > calc_expr_sem.ml.depends
+# Target: calc_expr_sem.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:calc_expr_sem.cmo, file:calc_expr_sem.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -I +decap -pp pa_ocaml -o calc_expr_sem.cmo calc_expr_sem.ml
+# Target: calc_parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:calc_parser.cmo, file:calc_parser.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -I +decap -pp pa_ocaml -o calc_parser.cmo calc_parser.ml
+# Target: calc_semantics.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:calc_semantics.cmo, file:calc_semantics.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -I +decap -pp pa_ocaml -o calc_semantics.cmo calc_semantics.ml
+# Target: calc_main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:calc_main.cmo, file:calc_main.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -I +decap -pp pa_ocaml -o calc_main.cmo calc_main.ml
+# Target: calc_main.byte, tags: { byte, dont_link_with, extension:byte, file:calc_main.byte, link, ocaml, program, quiet }
+/usr/bin/ocamlc -I +decap str.cma unix.cma decap.cma calc_ast.cmo calc_parser.cmo calc_expr_sem.cmo calc_semantics.cmo calc_main.cmo -o calc_main.byte
+# Compilation successful.

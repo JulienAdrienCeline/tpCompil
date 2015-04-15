@@ -1,0 +1,27 @@
+### Starting build.
+# Target: compiler.ml.depends, tags: { extension:ml, file:compiler.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules compiler.ml > compiler.ml.depends
+# Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules ast.ml > ast.ml.depends # cached
+# Target: ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast.cmo ast.ml # cached
+# Target: llvm.ml.depends, tags: { extension:ml, file:llvm.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules llvm.ml > llvm.ml.depends # cached
+# Target: llvm.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:llvm.cmo, file:llvm.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o llvm.cmo llvm.ml # cached
+# Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules parser.ml > parser.ml.depends # cached
+# Target: parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:parser.cmo, file:parser.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o parser.cmo parser.ml # cached
+# Target: compiler.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:compiler.cmo, file:compiler.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler.cmo compiler.ml
++ /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler.cmo compiler.ml
+File "compiler.ml", line 6, characters 6-7:
+Warning 26: unused variable p.
+File "compiler.ml", line 8, characters 5-17:
+Warning 26: unused variable compToTreize.
+File "compiler.ml", line 10, characters 5-20:
+Warning 26: unused variable compToTreizeEnd.
+# Target: compiler.byte, tags: { byte, dont_link_with, extension:byte, file:compiler.byte, link, ocaml, package(decap), program, quiet }
+/usr/bin/ocamlc -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml unix.cma str.cma decap.cma ast.cmo llvm.cmo parser.cmo compiler.cmo -o compiler.byte
+# Compilation successful.

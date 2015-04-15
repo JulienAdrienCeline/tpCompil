@@ -1,0 +1,61 @@
+#tests simples
+x=2
+x=x+1
+f(x) = x+1
+y=f(x) * x
+g(x) = x < 0 ? 1 : (x*x)
+z=g(y)
+
+#fibonacci
+fib(n)= n <= 1 ? n : fib(n-1) + fib(n-2)
+tmp=fib(25)
+
+#deux fonctions mutuellement récursives
+h(x,y) = x <= 0 ? y : k(x-y,y)
+k(x,y) = x <= 0 ? y : h(x,y) + 1
+u=h(10,1)
+
+#pgcd
+mod(x,y)=x - (x/y)*y
+abs(x)=x < 0 ? -x : x
+gcd(x,y)=
+  x=abs(x) y=abs(y)
+  x <= y ? gcdaux(x,y) : gcdaux(y,x)
+gcdaux(x,y)=x = 0 ? y : gcdaux(mod(y,x),x)
+
+testgcd1 = gcdaux(42,91)
+testgcd2 = gcdaux(421264322,912356724)
+
+#test fonction utilisant une variable globale
+gy=2
+fg(x) = gy+x
+gg=fg(3)
+
+#test sur les conditionnelles imbriquées
+testtest(x,y)=
+  x = y ? -1 :
+    x <= y ?
+      x <= y - 5 ? 0 : 1
+    : x >= y + 5 ? 2 : 3
+
+testtest1 = testtest(-6,0)
+testtest2 = testtest(-1,0)
+testtest3 = testtest(0,0)
+testtest4 = testtest(1,0)
+testtest5 = testtest(6,0)
+
+#factorielle
+fact(n) = n <= 0 ? 1 : n*fact(n-1)
+
+f10=fact(10)
+f20=fact(20)
+f30=fact(30)
+f100=fact(100)
+f1000=fact(1000)
+
+#puissance de deux
+pow(x,y) = y <= 0 ? 1 : x * pow(x,y-1)
+test62 = pow(2,62)
+test63 = pow(2,63)
+test64 = pow(2,64)
+test65 = pow(2,65)

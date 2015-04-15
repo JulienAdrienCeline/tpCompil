@@ -1,0 +1,9 @@
+mod(x,y)=x - (x/y)*y
+abs(x)=x < 0 ? -x : x
+gcd(x,y)=
+  x=abs(x) y=abs(y)
+  x <= y ? gcdaux(x,y) : gcdaux(y,x)
+gcdaux(x,y)=x = 0 ? y : gcdaux(mod(y,x),x)
+
+testgcd = gcdaux(42,91)
+testgcd = gcdaux(421264322,912356724)
