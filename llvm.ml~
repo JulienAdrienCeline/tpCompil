@@ -268,7 +268,7 @@ let start_function genv src_name =
   in
   List.iter2 (fun (name, _) v -> Hashtbl.add env.locals name v) args params_cible;
   let ty = fun_res_type fn in
-  Printf.bprintf env.block ";%s\ndefine %a %s(%a%s) nounwind {\n" src_name print_type ty name print_args params_cible (if var_args then ",..." else "");
+  Printf.bprintf env.block ";%s\ndefine fastcc %a %s(%a%s) {\n" src_name print_type ty name print_args params_cible (if var_args then ",..." else "");
   env
 
 (* fin de l'émission du code d'une fonction *)
