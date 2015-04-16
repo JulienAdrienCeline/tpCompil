@@ -1,4 +1,4 @@
-;fonction bidon qui retourne la valeur du paramètre qu'on lui a passé
+;compToTreize
 define fastcc i32 @definir(i32 %a) {
 
 	ret i32 %a
@@ -20,10 +20,10 @@ define i32 @main(i32 %argc, i8** %argv) {
 	%val = load [4 x i8]* %ptr
 	%eptr = getelementptr [4 x i8]* %ptr, i32 0, i32 0
 
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 15)				;; Affiche bien 15 sur pc de Céline et pc de Julien
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %v)				;; Affiche bien 15 sur pc de Céline et pc de Julien
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %res)			;; Affiche 15 sur pc de Julien, n'importe quoi sur pc de Céline
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %resV)		;; Affiche 15 sur pc de Julien, le même n'importe quoi qu'au dessus sur pc de Céline
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 15)
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %v)
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %res)
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %resV)
 
 	ret i32 0
 }

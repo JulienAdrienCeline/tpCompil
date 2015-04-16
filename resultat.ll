@@ -1,10 +1,10 @@
-;compToTreize
-define fastcc i32 @definir(i32 %a) {
+;fonction bidon qui retourne la valeur du paramètre qu'on lui a passé
+define i32 @definir(i32 %a) {
 
 	ret i32 %a
 }
 
-declare i32 @printf(i8*,...) nounwind
+declare i32 @printf(i8*,...)
 
 define i32 @main(i32 %argc, i8** %argv) {
 
@@ -18,12 +18,14 @@ define i32 @main(i32 %argc, i8** %argv) {
 	%ptr = alloca [4 x i8], align 1                               
 	store [4 x i8] c"%d\0A\00", [4 x i8]* %ptr
 	%val = load [4 x i8]* %ptr
-	%eptr = getelementptr [4 x i8]* %ptr, i32 0, i32 0
+	%eptr = getelementptr [4 x i8]* %ptr, i64 0, i64 0
 
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 15)
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %v)
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %res)
-	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %resV)
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 15) 							
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %v)								
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %res)	nounwind		;; attribut nounwind résoud nos problèmes
+	call i32 (i8*, ...)* @printf(i8* %eptr, i32 %resV) nounwind		;; attribut nounwind résoud nos problèmes
 
 	ret i32 0
 }
+
+attributes #2 = { nounwind }
