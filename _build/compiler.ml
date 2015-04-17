@@ -45,6 +45,16 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let strConst = declare_string_constant globEnv "str" "%d\n" in
 			let _ = emit_call monEnv printf [strConst; v] in
 			evalProg globEnv monEnv suite
+	| (Instr_complexe If(expr,sousprog))::suite ->
+			let macomparaison = evalExpr globEnv monEnv expr in
+			let lbtrue = new_label () in
+			let lbfin = new_label () in
+			let _ = emit_cond_br monEnv macomparaison lbtrue lbfin in 
+			let _ = emit_block monEnv lbtrue in
+			let _ = evalProg globEnv monEnv sousprog in
+			let _ = emit_br monEnv lbfin in
+			let _ = emit_block monEnv lbfin in
+			evalProg globEnv monEnv suite
 	| _ -> failwith "Not Implemented Yet"
 
 let _ = Decap.handle_exception (fun () ->

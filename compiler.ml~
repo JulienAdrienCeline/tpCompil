@@ -18,7 +18,7 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 	| Op_bin(e1,GreaterThan,e2) -> emit_icmp monEnv "sgt" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
 	| Op_bin(e1,LessThan,e2) -> emit_icmp monEnv "slt" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
 	| Op_bin(e1,Equal,e2) -> emit_icmp monEnv "eq" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
-	| Opp(e) -> emit_op_bin monEnv "sub" (evalExpr globEnv monEnv Valeur(Int 0)) (evalExpr globEnv monEnv e)
+	| Opp(e) -> emit_op_bin monEnv "sub" (evalExpr globEnv monEnv (Valeur(Int 0))) (evalExpr globEnv monEnv e)
 	| Id(Id_name id) -> 
 			try 
 			search_local monEnv id 
@@ -44,6 +44,15 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let printf = search_global globEnv "@printf" in
 			let strConst = declare_string_constant globEnv "str" "%d\n" in
 			let _ = emit_call monEnv printf [strConst; v] in
+			evalProg globEnv monEnv suite
+	| (Instr_complexe If(expr,sousprog))::suite ->
+			let macomparaison = evalExpr globEnv monEnv expr in
+			let lbtrue = new_label () in
+			let lbfin = new_label () in
+			let _ = emit_cond_br monEnv macomparaison lbtrue lbfin in 
+			let _ = emit_block monEnv lbtrue in
+			let _ = evalProg globEnv monEnv sousprog in
+			let _ = 
 			evalProg globEnv monEnv suite
 	| _ -> failwith "Not Implemented Yet"
 
