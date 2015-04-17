@@ -1,3 +1,10 @@
+print (6 < 7)
+print (8 < 4)
+print (3 == 4)
+print (3 == 3)
+print -16
+print (-12) + (-8)
+
 declare i32 @printf(i8*,...) nounwind
 ;str
 @str = constant [4 x i8] c"%d\0a\00"

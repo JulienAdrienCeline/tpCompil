@@ -3,9 +3,22 @@ open Parser
 open Llvm
 open Ast_printer
 
+let string_of_bool : bool -> string = 
+function 
+	true -> "1"
+	| false -> "0"
+
 let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 	| Valeur(Int n) -> { ty = Int 32; access= string_of_int n }
+	| Valeur(Boolean b) -> { ty = Int 1; access= string_of_bool b }
 	| Op_bin(e1,Add,e2) -> emit_op_bin monEnv "add" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,Sub,e2) -> emit_op_bin monEnv "sub" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,Mul,e2) -> emit_op_bin monEnv "mul" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,Div,e2) -> emit_op_bin monEnv "sdiv" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,GreaterThan,e2) -> emit_icmp monEnv "sgt" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,LessThan,e2) -> emit_icmp monEnv "slt" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Op_bin(e1,Equal,e2) -> emit_icmp monEnv "eq" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Opp(e) -> emit_op_bin monEnv "sub" (evalExpr globEnv monEnv (Valeur(Int 0))) (evalExpr globEnv monEnv e)
 	| Id(Id_name id) -> 
 			try 
 			search_local monEnv id 
