@@ -326,7 +326,7 @@ let declare_string_constant genv name str =
 let emit_in_scope env defs fn =
   List.iter (fun (name, value) -> Hashtbl.add env.locals name value) defs;
   let res = fn () in
-  List.iter (fun (name, value) -> Hashtbl.remove env.locals name) defs;
+  (* List.iter (fun (name, value) -> Hashtbl.remove env.locals name) defs; *)
   res
 
 (* fonction pour démarrer l'emission d'un fichier .ll *)

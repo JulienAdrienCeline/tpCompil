@@ -1,4 +1,11 @@
+a = 2 + 3
+b = 5 + 4
+print 2+8
+
 declare i32 @printf(i8*,...) nounwind
+;str
+@str = constant [4 x i8] c"%d\0a\00"
+
 define i32 @main(i32 %argc, i8** %argv) {
    %add = add i32 2, 3
    %alloc = alloca i32
@@ -8,5 +15,7 @@ define i32 @main(i32 %argc, i8** %argv) {
    %alloc0 = alloca i32
    store i32 %add0, i32* %alloc0
    %load0 = load i32* %alloc0
+   %add1 = add i32 2, 8
+   %call = call i32 (i8*,...)* @printf(i8* getelementptr([4 x i8]* @str, i32 0, i32 0), i32 %add1)
 ret i32 0
 }

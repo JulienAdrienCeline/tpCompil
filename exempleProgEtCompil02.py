@@ -1,3 +1,7 @@
+a = 2 + 3
+print a
+print 10 + 8
+
 declare i32 @printf(i8*,...) nounwind
 ;str
 @str = constant [4 x i8] c"%d\0a\00"

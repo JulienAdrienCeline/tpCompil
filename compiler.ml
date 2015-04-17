@@ -1,53 +1,45 @@
 open Ast
 open Parser
 open Llvm
+open Ast_printer
+
+let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
+	| Valeur(Int n) -> { ty = Int 32; access= string_of_int n }
+	| Op_bin(e1,Add,e2) -> emit_op_bin monEnv "add" (evalExpr globEnv monEnv e1) (evalExpr globEnv monEnv e2)
+	| Id(Id_name id) -> 
+			try 
+			search_local monEnv id 
+			with Not_found -> try 
+				let g = search_global (get_global monEnv) id in
+				emit_load monEnv g
+      with Not_found ->
+				failwith ("Unbound variable: "^id)
+	| _ -> failwith("Not Implemented Yet")
+
+
+let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
+	| [] -> ()
+	| (Affectation(Id_name id, expr))::suite ->
+			let v = evalExpr globEnv monEnv expr in
+			let al = emit_alloca monEnv v.ty in
+			let _ = emit_store monEnv v al in
+			let lo = emit_load monEnv al in
+			let _ = emit_in_scope monEnv [(id, lo)] (fun () -> ()) in
+			evalProg globEnv monEnv suite
+	| (Print expr)::suite ->
+			let v = evalExpr globEnv monEnv expr in
+			let printf = search_global globEnv "@printf" in
+			let strConst = declare_string_constant globEnv "str" "%d\n" in
+			let _ = emit_call monEnv printf [strConst; v] in
+			evalProg globEnv monEnv suite
+	| _ -> failwith "Not Implemented Yet"
 
 let _ = Decap.handle_exception (fun () ->
-  let _ = Decap.parse_channel (programme 0) blank stdin in 
+  let p = Decap.parse_channel (programme 0) blank stdin in 
 	let genv = start_emit_file () in
 	let _ = declare_extern genv "@printf" (Int 32) ~var_args:true [Ptr (Int 8)] in
-
-	(* Je commence la fonction compToTreize *)
-	let _ = register_function genv "compToTreize" (Int 32) [("a", Int 32)] in
-	let compToTreizeEnv = start_function genv "compToTreize" in
-
-	(* Dans la fonction je fais un if (condition) then block1 else block2 *)
-		(* Je commence par évaluer la condition *)
-			(* emit_icmp env pred e1 e2 *) (* => %pred_i = icmp pred ... *)
-			let macomparaison = emit_icmp compToTreizeEnv "slt" { ty = Int 32; access = "%a" } { ty = Int 32; access = "13" } in
-		(* Je définis les 2 labels : quoi faire si true, quoi faire si false *)
-			let lbtrue = new_label () in
-			let lbfalse = new_label () in
-		(* J'émets le branchement conditionnel pour aller sur true ou sur false *)
-			let _ = emit_cond_br compToTreizeEnv macomparaison lbtrue lbfalse in
-		(* Je définis le block true *)
-			let _ = emit_block compToTreizeEnv lbtrue in
-			let resT = emit_op_bin compToTreizeEnv "add" { ty = Int 32; access = "%a" } { ty = Int 32; access = "13" } in
-			let _ = emit_ret compToTreizeEnv resT in
-		(* Je définis le block false *)
-			let _ = emit_block compToTreizeEnv lbfalse in
-			let resF = emit_op_bin compToTreizeEnv "sub" { ty = Int 32; access = "%a" } { ty = Int 32; access = "13" } in
-			let _ = emit_ret compToTreizeEnv resF in
-			
-
-	(* Je termine la fonction compToTreize *)
-			let _ = end_function compToTreizeEnv in
-
-	(* Je démarre la fonction main *)
-			let mainEnv = start_init_code genv in
-
-	(* Je vais appeler ma fonction dans le main *)
-			let fn = search_global genv "compToTreize" in
-			let resPg = emit_call mainEnv fn [{ ty = Int 32; access = "15" }] in (* ==> résultat : 2 *)
-			let resPp = emit_call mainEnv fn [{ ty = Int 32; access = "7" }] in (* ==> résultat : 20 *)
-
-	(* Je vais afficher le résultat *)
-			let printf = search_global genv "@printf" in
-			let strConst = declare_string_constant genv "str" "Les résultats sont %d et %d\n" in
-			let _ = emit_call mainEnv printf [strConst; resPg; resPp] in
-
-	(* Je termine la fonction main *)
-			let _ = end_init_code mainEnv in
-
+	let mainEnv = start_init_code genv in
+	let _ = evalProg genv mainEnv p in 
+	let _ = end_init_code mainEnv in 
 	end_emit_file genv stdout
 	)()
