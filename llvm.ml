@@ -50,6 +50,8 @@ type env = {
   genv : genv;
   (* variable locale : nom source -> nom cible *)
   locals : (src_name, value) Hashtbl.t;
+	(* défini par moi : nom source -> (nom_cible1, label1), (nom_cible2, label2) ... *)
+	labs : (src_name, (value * value) list) Hashtbl.t;
   (* block courant (celui on l'on ajoute des instructions maintenant) *)
   block : Buffer.t;
   (* le label du block courant, "" pour le premier bloc d'une fonction *)
@@ -257,6 +259,7 @@ let start_function genv src_name =
     genv = genv;
     current_label = "";
     locals = Hashtbl.create 31;
+		labs = Hashtbl.create 31;
     block = block;
     names = Hashtbl.create 31
   }
@@ -283,6 +286,7 @@ let start_init_code genv =
     genv = genv;
     current_label = "";
     locals = Hashtbl.create 31;
+		labs = Hashtbl.create 31;
     block = block;
     names = genv.main_names;
   }
@@ -323,11 +327,41 @@ let declare_string_constant genv name str =
   Hashtbl.add genv.globals name res;
   res
 
+let search_labs env name =
+	try	Hashtbl.find env.labs name
+	with Not_found -> []
+
+(* emit_in_scope modifié par moi *)
 let emit_in_scope env defs fn =
-  List.iter (fun (name, value) -> Hashtbl.add env.locals name value) defs;
+	(* List.iter (fun (name, value) -> Hashtbl.remove env.locals name) defs; *)
+  List.iter (fun (name, value) -> 
+		let r = search_labs env name in
+		Hashtbl.remove env.locals name;
+		Hashtbl.add env.locals name value;
+		Hashtbl.remove env.labs name;
+		Hashtbl.add env.labs name (List.concat [[(value,get_label env)]; r]) ;
+		()
+	) defs;
   let res = fn () in
-  (* List.iter (fun (name, value) -> Hashtbl.remove env.locals name) defs; *)
   res
+
+(* my_emit_phi trouve tous les labels origines d'après le nom source d'une variable *)
+let my_emit_phi env name =
+	let rec print_phis : Buffer.t -> (value * value) list -> unit = fun buffer -> function
+    | [] -> ()
+    | [x,y] -> Printf.bprintf buffer "[%s, %s]" x.access y.access
+    | (x,y)::l -> Printf.bprintf buffer "[%s, %s],%a" x.access y.access print_phis l
+  in
+	let ls = Hashtbl.find env.labs name in
+  let r = new_local env "phi" in
+  let actualType = match ls with
+      (x,_)::_ -> x.ty
+    | _ -> failwith "empty phis ?"
+  in
+	Hashtbl.remove env.locals name;
+	Hashtbl.add env.locals name {ty = actualType; access = r};
+  Printf.bprintf env.block "   %s = phi %a %a\n" r print_type actualType print_phis ls;
+  { ty = actualType; access = r }
 
 (* fonction pour démarrer l'emission d'un fichier .ll *)
 let start_emit_file () =

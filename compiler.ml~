@@ -29,8 +29,6 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 				failwith ("Unbound variable: "^id)
 	| _ -> failwith("Not Implemented Yet")
 
-
-
 let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
 	| (Affectation(Id_name id, expr))::suite ->
@@ -47,9 +45,7 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = emit_call monEnv printf [strConst; v] in
 			evalProg globEnv monEnv suite
 	| (Instr_complexe If(expr,sousprog))::suite ->
-			let lbbefore = new_label () in
-			let _ = emit_br monEnv lbbefore in
-			let _ = emit_block monEnv lbbefore in
+			let curLbBefore = get_label monEnv in
 			let macomparaison = evalExpr globEnv monEnv expr in
 			let lbtrue = new_label () in
 			let lbfin = new_label () in
@@ -58,6 +54,8 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = evalProg globEnv monEnv sousprog in
 			let _ = emit_br monEnv lbfin in
 			let _ = emit_block monEnv lbfin in
+			let _ = my_emit_phi monEnv "a" in
+			(* dans le lbfin, il faut définir des join pour toutes les variables modifiées par lbtrue *)
 			evalProg globEnv monEnv suite
 	| _ -> failwith "Not Implemented Yet"
 
@@ -66,6 +64,9 @@ let _ = Decap.handle_exception (fun () ->
 	let genv = start_emit_file () in
 	let _ = declare_extern genv "@printf" (Int 32) ~var_args:true [Ptr (Int 8)] in
 	let mainEnv = start_init_code genv in
+	let lbbefore = new_label () in
+	let _ = emit_br mainEnv lbbefore in
+	let _ = emit_block mainEnv lbbefore in
 	let _ = evalProg genv mainEnv p in 
 	let _ = end_init_code mainEnv in 
 	end_emit_file genv stdout

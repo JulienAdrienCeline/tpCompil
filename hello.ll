@@ -3,18 +3,18 @@ target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f3
 target triple = "i386-pc-linux-gnu"
 
 @.str = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
-@.str1 = private unnamed_addr constant [14 x i8] c"Hello World!\0A\00", align 1
+@.str1 = private unnamed_addr constant [9 x i8] c"%d ; %d\0A\00", align 1
 
 ; Function Attrs: nounwind
 define i8* @example(i8* nocapture readonly %header, i8* nocapture readonly %word) #0 {
-  %1 = tail call i32 @strlen(i8* %header) #3
-  %2 = tail call i32 @strlen(i8* %word) #3
+  %1 = tail call i32 @strlen(i8* %header) #2
+  %2 = tail call i32 @strlen(i8* %word) #2
   %3 = add i32 %1, 2
   %4 = add i32 %3, %2
-  %5 = tail call noalias i8* @malloc(i32 %4) #2
-  %6 = tail call i8* @strncat(i8* %5, i8* %header, i32 %1) #2
-  %7 = tail call i8* @strncat(i8* %5, i8* %word, i32 %4) #2
-  %8 = tail call i8* @strncat(i8* %5, i8* getelementptr inbounds ([2 x i8]* @.str, i32 0, i32 0), i32 %4) #2
+  %5 = tail call noalias i8* @malloc(i32 %4) #3
+  %6 = tail call i8* @strncat(i8* %5, i8* %header, i32 %1) #3
+  %7 = tail call i8* @strncat(i8* %5, i8* %word, i32 %4) #3
+  %8 = tail call i8* @strncat(i8* %5, i8* getelementptr inbounds ([2 x i8]* @.str, i32 0, i32 0), i32 %4) #3
   ret i8* %5
 }
 
@@ -29,34 +29,40 @@ declare i8* @strncat(i8*, i8* nocapture readonly, i32) #0
 
 ; Function Attrs: nounwind
 define i32 @main(i32 %argc, i8** nocapture readonly %argv) #0 {
-  %1 = getelementptr inbounds i8** %argv, i32 1
-  %2 = load i8** %1, align 4, !tbaa !1
-  %3 = tail call i32 @strlen(i8* %2) #3
-  %4 = add i32 %3, 15
-  %5 = tail call noalias i8* @malloc(i32 %4) #2
-  %strlen = tail call i32 @strlen(i8* %5)
-  %endptr = getelementptr i8* %5, i32 %strlen
-  tail call void @llvm.memcpy.p0i8.p0i8.i32(i8* %endptr, i8* getelementptr inbounds ([14 x i8]* @.str1, i32 0, i32 0), i32 14, i32 1, i1 false)
-  %6 = tail call i8* @strncat(i8* %5, i8* %2, i32 %4) #2
-  %7 = tail call i8* @strncat(i8* %5, i8* getelementptr inbounds ([2 x i8]* @.str, i32 0, i32 0), i32 %4) #2
-  %8 = tail call i32 (i8*, ...)* @printf(i8* %5) #2
-  tail call void @free(i8* %5) #2
+  %1 = icmp sgt i32 %argc, 2
+  br i1 %1, label %2, label %15
+
+; <label>:2                                       ; preds = %0
+  %3 = getelementptr inbounds i8** %argv, i32 1
+  %4 = load i8** %3, align 4, !tbaa !1
+  %5 = tail call i32 @strlen(i8* %4) #2
+  %6 = getelementptr inbounds i8** %argv, i32 2
+  %7 = load i8** %6, align 4, !tbaa !1
+  %8 = tail call i32 @strlen(i8* %7) #2
+  %9 = icmp sgt i32 %argc, 3
+  br i1 %9, label %10, label %15
+
+; <label>:10                                      ; preds = %2
+  %11 = getelementptr inbounds i8** %argv, i32 3
+  %12 = load i8** %11, align 4, !tbaa !1
+  %13 = tail call i32 @strlen(i8* %12) #2
+  %14 = add i32 %13, %8
+  br label %15
+
+; <label>:15                                      ; preds = %2, %10, %0
+  %a.0 = phi i32 [ 0, %0 ], [ %5, %10 ], [ %5, %2 ]
+  %b.0 = phi i32 [ 0, %0 ], [ %14, %10 ], [ %8, %2 ]
+  %16 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([9 x i8]* @.str1, i32 0, i32 0), i32 %a.0, i32 %b.0) #3
   ret i32 0
 }
 
 ; Function Attrs: nounwind
 declare i32 @printf(i8* nocapture readonly, ...) #0
 
-; Function Attrs: nounwind
-declare void @free(i8* nocapture) #0
-
-; Function Attrs: nounwind
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture readonly, i32, i32, i1) #2
-
 attributes #0 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind readonly "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #2 = { nounwind }
-attributes #3 = { nounwind readonly }
+attributes #2 = { nounwind readonly }
+attributes #3 = { nounwind }
 
 !llvm.ident = !{!0}
 
