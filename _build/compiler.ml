@@ -30,6 +30,7 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 	| _ -> failwith("Not Implemented Yet")
 
 
+
 let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
 	| (Affectation(Id_name id, expr))::suite ->
@@ -46,6 +47,9 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = emit_call monEnv printf [strConst; v] in
 			evalProg globEnv monEnv suite
 	| (Instr_complexe If(expr,sousprog))::suite ->
+			let lbbefore = new_label () in
+			let _ = emit_br monEnv lbbefore in
+			let _ = emit_block monEnv lbbefore in
 			let macomparaison = evalExpr globEnv monEnv expr in
 			let lbtrue = new_label () in
 			let lbfin = new_label () in
@@ -54,6 +58,7 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = evalProg globEnv monEnv sousprog in
 			let _ = emit_br monEnv lbfin in
 			let _ = emit_block monEnv lbfin in
+			(* dans le lbfin, il faut définir des join pour toutes les variables modifiées par lbtrue *)
 			evalProg globEnv monEnv suite
 	| _ -> failwith "Not Implemented Yet"
 
