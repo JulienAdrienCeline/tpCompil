@@ -29,6 +29,15 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 				failwith ("Unbound variable: "^id)
 	| _ -> failwith("Not Implemented Yet")
 
+let rec evalPhis (globEnv:genv) (monEnv:env) : programme -> unit = function
+	| [] -> ()
+	| (Affectation(Id_name id, expr))::suite ->
+			let phi = my_emit_phi monEnv id in
+			let _ = emit_in_scope monEnv [(id, phi)] (fun () -> ()) in
+			evalPhis globEnv monEnv suite
+	| _::suite ->
+		evalPhis globEnv monEnv suite
+
 let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
 	| (Affectation(Id_name id, expr))::suite ->
@@ -45,7 +54,6 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = emit_call monEnv printf [strConst; v] in
 			evalProg globEnv monEnv suite
 	| (Instr_complexe If(expr,sousprog))::suite ->
-			let curLbBefore = get_label monEnv in
 			let macomparaison = evalExpr globEnv monEnv expr in
 			let lbtrue = new_label () in
 			let lbfin = new_label () in
@@ -54,8 +62,8 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			let _ = evalProg globEnv monEnv sousprog in
 			let _ = emit_br monEnv lbfin in
 			let _ = emit_block monEnv lbfin in
-			let _ = my_emit_phi monEnv "a" in
-			(* dans le lbfin, il faut définir des join pour toutes les variables modifiées par lbtrue *)
+			let _ = evalPhis globEnv monEnv sousprog in
+			(* dans le lbfin, il faut définir des phi pour toutes les variables modifiées par lbtrue *)
 			evalProg globEnv monEnv suite
 	| _ -> failwith "Not Implemented Yet"
 

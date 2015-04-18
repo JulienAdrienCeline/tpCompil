@@ -4,6 +4,10 @@ type pred = string (* un prédicat de comparaison: "neq", "eq", ...*)
 type src_name = string (* un nom d'identifiant dans le programme source *)
 type llvm_global = string (* un nom global llvm: commence par @ *)
 
+type graph =
+	None
+	| Noeud of label * graph * graph
+
 (* une AST pour les types de LLVM (il en manque, comme les tableaux, vecteur, structures ...) *)
 type llvm_type =
 | Void
@@ -50,8 +54,10 @@ type env = {
   genv : genv;
   (* variable locale : nom source -> nom cible *)
   locals : (src_name, value) Hashtbl.t;
-	(* défini par moi : nom source -> (nom_cible1, label1), (nom_cible2, label2) ... *)
+	(* défini par moi : nom source d'une variable -> (nom_cible1, label1), (nom_cible2, label2) ... => tous les labels dans lequel il a été défini *)
 	labs : (src_name, (value * value) list) Hashtbl.t;
+	(* défini par moi : savoir où on est dans l'arbre des labels *)
+	(* lbStruct: graph; *)
   (* block courant (celui on l'on ajoute des instructions maintenant) *)
   block : Buffer.t;
   (* le label du block courant, "" pour le premier bloc d'une fonction *)
@@ -358,8 +364,8 @@ let my_emit_phi env name =
       (x,_)::_ -> x.ty
     | _ -> failwith "empty phis ?"
   in
-	Hashtbl.remove env.locals name;
-	Hashtbl.add env.locals name {ty = actualType; access = r};
+	(* Hashtbl.remove env.locals name;
+	Hashtbl.add env.locals name {ty = actualType; access = r}; *)
   Printf.bprintf env.block "   %s = phi %a %a\n" r print_type actualType print_phis ls;
   { ty = actualType; access = r }
 
