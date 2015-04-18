@@ -1,0 +1,36 @@
+Début fonction :
+	Création du noeud 1
+	bloc(noeud1)
+	defPhis(noeuds)
+
+bloc(noeudI, programme) :
+	match programme with :
+		| (Affectation idVar)::suite
+				ajouter idVar aux variables de noeudI
+				bloc(noeudI, programme)
+		| (If cond then sousprogramme)::suite
+				noeudI -> filsTrue = nouveauNoeud(noeudI -> listVars) //(Créer la nouvelle verte)
+				noeudI -> filsFalse = nouveauNoeud(noeudI -> listVars)	//(Créer la nouvelle rouge)
+				noeudI -> filsFalse -> parentFalse = noeudI
+				noeudI -> filsFalse -> filsSuite = noeudI -> filsSuite //(barrer la noire pour la recoller au bout de la rouge)
+				noeudI -> filsFalse -> filsSuite -> parentSuite = noeudI -> filsFalse
+				noeudI -> filsTrue -> filsSuite = noeudI -> filsFalse //(créer la nouvelle noire)
+				noeudI -> filsTrue -> filsSuite -> parentSuite = noeudI -> filsTrue
+				bloc(noeudI -> filsTrue, sousprogramme)
+				bloc(noeudI -> filsFalse, suite)
+	
+defPhis(noeuds):
+	for i = 1 to noeuds.length
+		if (noeud[i] -> parentFalse != null && noeud[i] -> parentSuite != null):
+			pour chaque var dans noeud[i] -> listVars :
+				noeud[i] -> phis -> add "phi i32 [var, parentFalse], [var, parentTrue]"
+
+			
+type noeud:
+	(idVar list) listVars
+	(phi list) phis
+	noeud filsTrue (fils vert)
+	noeud filsFalse (fils rouge)
+	noeud filsSuite (fils noir)
+	noeud parentFalse (parent rouge)
+	noeud parentSuite (parent noir)

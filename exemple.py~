@@ -1,5 +1,7 @@
 a = 3
 b = 9
+c = 2
+d = 5
 print a
 if(6 < b):
  a = 6

@@ -1,0 +1,44 @@
+OK parser : 8 instructions 
+
+Programme(
+	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+	Affectation( Id_name( c ),Valeur( Int( 2 ) ) )
+	Affectation( Id_name( d ),Valeur( Int( 5 ) ) )
+
+	IC( 
+		If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+
+			Programme(
+				Affectation( Id_name( a ),Valeur( Int( 6 ) ) )
+				IC( 
+					If( Op_bin( Id( Id_name( b ) ),LessThan,Valeur( Int( 12 ) ) ),
+
+						Programme(
+							Affectation( Id_name( b ),Valeur( Int( 12 ) ) )
+							IC( 
+								If( Op_bin( Id( Id_name( a ) ),LessThan,Valeur( Int( 10 ) ) ),
+
+									Programme(
+										Affectation( Id_name( a ),Valeur( Int( 30 ) ) )
+										Affectation( Id_name( c ),Valeur( Int( 8 ) ) )
+									)
+
+								)
+							)
+						)
+
+					)
+				)
+				Affectation( Id_name( d ),Valeur( Int( 4 ) ) )
+			)
+
+		)
+	)
+	Print( Id( Id_name( a ) ) )
+	Print( Id( Id_name( b ) ) )
+)
+3
+30
+12
+OK sémantique : retour 0 
