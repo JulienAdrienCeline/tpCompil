@@ -1,0 +1,77 @@
+open Ast
+open Parser
+open Llvm
+open Ast_printer
+
+(* Ce fichier aura pour but de définir à l'avance le graph des labels et des phis à mettre 
+=> on obtiendra une sorte de deuxième ast, dans laquelle on ajoutera les phis *)
+
+type idvar = string (* nom d'une variable dans le programme source *)
+
+type llvminstruction = 
+	Label of noeud
+	| Phi of (idvar * (noeud list)) list
+
+type allinstruction =
+	AstInstruction of instruction
+	| LlvmInstruction of llvminstruction
+
+type labprogramme = allinstruction list
+
+type noeud = 
+	None
+	| Noeud of (label * (idvar list) * ((idvar * noeud) list) * ((idvar * noeud) list) * noeud * noeud * noeud)
+
+(** {
+	nom: label;
+	listVars: (idvar list); (* liste des noms sources des variables *)
+	listPhisFalse: (idvar * noeud) list; (* liste des origines possibles de chaque variable de listVars) *)
+	listPhisSuite: (idvar * noeud) list; (* liste des origines possibles de chaque variable de listVars) *)
+	filsTrue: noeud; (* quoi faire si true ;; flèche verte *)
+	filsFalse: noeud; (* où aller si on entre pas dans le filsTrue ;; flèche rouge *)
+	filsSuite: noeud; (* bloc qui suit dans l'ordre llvm ;; flèche noire *)
+} **)
+
+let bloc (monNoeud:noeud) : programme -> labprogramme = function
+	| [] -> []
+	| (Affectation(Id_name id, expr))::suite ->
+			monNoeud.listVars = id::monNoeud.listVars;
+			(AstInstruction (Affectation(Id_name id, expr)))::(bloc noeud suite)
+	| (Instr_complexe If(expr,sousprog))::suite ->
+			match monNoeud with -> Noeud(monNom, monListVars, _, _, monFilsTrue, monFilsFalse, monFilsSuite)
+			let newFilsFalse = Noeud(new_label (), monListVars, [], [], None, None, monFilsSuite) in
+			let newFilsTrue = Noeud(new_label (), monListVars, [], [], None, None, monFilsFalse) in
+			monNoeud = Noeud(monNom, monListVars, [], [], monFilsTrue, monFilsFalse, None);
+			List.concat [
+				[(LlvmInstruction (Label monNoeud))];
+				[(AstInstruction (Instr_complexe If(expr,sousprog)))];
+				(bloc (monNoeud.filsTrue) sousprog);
+				(bloc (monNoeud.filsFalse) suite)]
+	| instr::suite -> (AstInstruction instr)::(bloc noeud suite)
+
+let defPhis : noeud -> unit = function
+	(monNom, monListVars, _, _, _, Noeud(_,_,listPhisFalse,_,_,_,_), Noeud(_,_,_,listPhisSuite,_,_,_)) ->
+		(List.iter monListVars
+			(fun unId -> monNoeud.filsFalse.listPhisFalse = (unId, monNom)::monNoeud.filsFalse.listPhisFalse; ())
+		);
+	|(monNom, monListVars, _, _, _, Noeud(), None) ->
+	|(monNom, monListVars, _, _, _, None, Noeud()) ->
+	|(monNom, monListVars, _, _, _, None, None) -> ()
+
+	if (monNoeud.filsFalse != null) then (
+		(List.iter monNoeud.listVars 
+			(fun unId -> monNoeud.filsFalse.listPhisFalse = (unId, monNoeud.nom)::monNoeud.filsFalse.listPhisFalse; ())
+		);
+		if (monNoeud.filsSuite != null) then
+			((List.iter monNoeud.listVars 
+				(fun unId -> monNoeud.filsSuite.listPhisFalse = (unId, monNoeud.nom)::monNoeud.filsSuite.listPhisFalse; ())
+			); ())
+		else ())
+	else ()
+
+let doBlock monProg =
+	let noeudDepart = (new_label (), [], [], [], None, None, None) in
+	let monLabProg = bloc noeudDepart monProg in
+	defPhis noeudDepart;
+	(noeudDepart, monLabProg)
+	

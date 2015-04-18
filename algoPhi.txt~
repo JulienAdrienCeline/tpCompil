@@ -23,12 +23,12 @@ defPhis(noeuds):
 	for i = 1 to noeuds.length
 		if (noeud[i] -> parentFalse != null && noeud[i] -> parentSuite != null):
 			pour chaque var dans noeud[i] -> listVars :
-				noeud[i] -> phis -> add "phi i32 [var, parentFalse], [var, parentTrue]"
+				noeud[i] -> phis -> add [(var, parentFalse); (var, parentTrue)]
 
 			
 type noeud:
 	(idVar list) listVars
-	(phi list) phis
+	((idVar * idLabel) list) phis
 	noeud filsTrue (fils vert)
 	noeud filsFalse (fils rouge)
 	noeud filsSuite (fils noir)
