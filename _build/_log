@@ -1,11 +1,27 @@
 ### Starting build.
-# Target: blocker.ml.depends, tags: { extension:ml, file:blocker.ml, ocaml, ocamldep, package(decap), quiet }
-/usr/bin/ocamldep -pp pa_ocaml -modules blocker.ml > blocker.ml.depends
-+ /usr/bin/ocamldep -pp pa_ocaml -modules blocker.ml > blocker.ml.depends
-blocker.ml: parse error after 123:44, '|)|,|.|:|:>|;|infix_symb' expected
-Preprocessing error on file blocker.ml
-Error while running external preprocessor
-Command line: pa_ocaml 'blocker.ml' > /tmp/ocamlpp0ab4bd
-
+# Target: old_compiler03.ml.depends, tags: { extension:ml, file:old_compiler03.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules old_compiler03.ml > old_compiler03.ml.depends
+# Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules ast.ml > ast.ml.depends # cached
+# Target: ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast.cmo ast.ml # cached
+# Target: ast_printer.ml.depends, tags: { extension:ml, file:ast_printer.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules ast_printer.ml > ast_printer.ml.depends # cached
+# Target: ast_printer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast_printer.cmo, file:ast_printer.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast_printer.cmo ast_printer.ml # cached
+# Target: llvm.ml.depends, tags: { extension:ml, file:llvm.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules llvm.ml > llvm.ml.depends # cached
+# Target: llvm.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:llvm.cmo, file:llvm.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o llvm.cmo llvm.ml # cached
+# Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules parser.ml > parser.ml.depends # cached
+# Target: parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:parser.cmo, file:parser.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o parser.cmo parser.ml # cached
+# Target: old_compiler03.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:old_compiler03.cmo, file:old_compiler03.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o old_compiler03.cmo old_compiler03.ml
++ /usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o old_compiler03.cmo old_compiler03.ml
+File "old_compiler03.ml", line 31, characters 4-42:
+Error: This pattern matches values of type Ast.expression
+       but a pattern was expected which matches values of type exn
 Command exited with code 2.
 # Compilation unsuccessful.

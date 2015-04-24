@@ -57,7 +57,7 @@ type env = {
 	(* défini par moi : nom source d'une variable -> (nom_cible1, label1), (nom_cible2, label2) ... => tous les labels dans lequel il a été défini *)
 	labs : (src_name, (value * value) list) Hashtbl.t;
 	(* défini par moi : savoir où on est dans l'arbre des labels *)
-	lbStruct: graph;
+	(* lbStruct: graph; *)
   (* block courant (celui on l'on ajoute des instructions maintenant) *)
   block : Buffer.t;
   (* le label du block courant, "" pour le premier bloc d'une fonction *)

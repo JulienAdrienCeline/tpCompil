@@ -27,6 +27,14 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 				emit_load monEnv g
       with Not_found ->
 				failwith ("Unbound variable: "^id)
+
+	 | Call(Fn_name fonction_name, arguments) -> try 
+			search_local monEnv fonction_name 
+			with Not_found -> try 
+				let g = search_global (get_global monEnv) fonction_name in
+				emit_call monEnv fonction_name arguments
+      with Not_found ->
+				failwith ("Unbound function: "^fonction_name) 
 	| _ -> failwith("Not Implemented Yet")
 
 let rec evalPhis (globEnv:genv) (monEnv:env) : programme -> unit = function
