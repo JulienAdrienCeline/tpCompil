@@ -11,20 +11,15 @@ bloc(noeudI, programme) :
 		| (If cond then sousprogramme)::suite
 				noeudI -> filsTrue = nouveauNoeud(noeudI -> listVars) //(Créer la nouvelle verte)
 				noeudI -> filsFalse = nouveauNoeud(noeudI -> listVars)	//(Créer la nouvelle rouge)
-
 				noeudI -> filsFalse -> filsSuite = noeudI -> filsSuite //(barrer la noire pour la recoller au bout de la rouge)
-
 				noeudI -> filsTrue -> filsSuite = noeudI -> filsFalse //(créer la nouvelle noire)
-
 				bloc(noeudI -> filsTrue, sousprogramme)
 				bloc(noeudI -> filsFalse, suite)
 	
-defPhis(noeuds):
-	for i = 1 to noeuds.length
-		if (noeud[i] -> parentFalse != null && noeud[i] -> parentSuite != null):
-			pour chaque var dans noeud[i] -> listVars :
-				noeud[i] -> phis -> add [(var, parentFalse); (var, parentTrue)]
-
+defPhis(noeud):
+	faire les phis de son fils false
+	faire les phis de son fils suite
+	defPhis(noeud.filsTrue)
 			
 type noeud:
 	(idVar list) listVars
