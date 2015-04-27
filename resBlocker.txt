@@ -1,0 +1,29 @@
+Je suis iciJe rencontre un if : coucou
+Je crée les 2 labels label2 et label3 
+J'ai rajouté ces 2 labels label2 et label3 comme fils true et false du label courant label1
+Ces 2 labels label2 et label3 n'ont pas de fils true et falseJe rencontre un if : coucou
+Je crée les 2 labels label4 et label5 
+J'ai rajouté ces 2 labels label4 et label5 comme fils true et false du label courant label2
+Ces 2 labels label4 et label5 n'ont pas de fils true et falseJe rencontre un if : coucou
+Je crée les 2 labels label6 et label7 
+J'ai rajouté ces 2 labels label6 et label7 comme fils true et false du label courant label5
+Ces 2 labels label6 et label7 n'ont pas de fils true et falseJe suis là
+ LABELS 
+label6 ; label7 ; label4 ; label5 ; label2 ; label3 ; label1 ; 
+
+ FILS FALSE 
+(label6 , NOB) ; (label7 , NOB) ; (label5 , label7) ; (label4 , NOB) ; (label5 , NOB) ; (label2 , label5) ; (label2 , NOB) ; (label3 , NOB) ; (label1 , label3) ; (label1 , NOB) ; 
+
+ FILS TRUE 
+(label6 , NOB) ; (label7 , NOB) ; (label5 , label6) ; (label4 , NOB) ; (label5 , NOB) ; (label2 , label4) ; (label2 , NOB) ; (label3 , NOB) ; (label1 , label2) ; (label1 , NOB) ; 
+
+ FILS SUITE 
+(label6 , label7) ; (label7 , label3) ; (label5 , NOB) ; (label4 , label5) ; (label2 , NOB) ; (label3 , NOB) ; (label1 , NOB) ; 
+
+ PHIS FALSE 
+label1 : 
+
+
+ PHIS SUITE 
+label1 : 
+

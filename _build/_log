@@ -1,6 +1,6 @@
 ### Starting build.
-# Target: compiler_julien.ml.depends, tags: { extension:ml, file:compiler_julien.ml, ocaml, ocamldep, package(decap), quiet }
-/usr/bin/ocamldep -pp pa_ocaml -modules compiler_julien.ml > compiler_julien.ml.depends
+# Target: blocker.ml.depends, tags: { extension:ml, file:blocker.ml, ocaml, ocamldep, package(decap), quiet }
+/usr/bin/ocamldep -pp pa_ocaml -modules blocker.ml > blocker.ml.depends
 # Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, package(decap), quiet }
 /usr/bin/ocamldep -pp pa_ocaml -modules ast.ml > ast.ml.depends # cached
 # Target: ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, package(decap), quiet }
@@ -17,11 +17,47 @@
 /usr/bin/ocamldep -pp pa_ocaml -modules parser.ml > parser.ml.depends # cached
 # Target: parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:parser.cmo, file:parser.ml, implem, ocaml, package(decap), quiet }
 /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o parser.cmo parser.ml # cached
-# Target: compiler_julien.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:compiler_julien.cmo, file:compiler_julien.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler_julien.cmo compiler_julien.ml
-+ /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler_julien.cmo compiler_julien.ml
-File "compiler_julien.ml", line 34, characters 21-34:
-Error: This expression has type string but an expression was expected of type
-         Llvm.value
-Command exited with code 2.
-# Compilation unsuccessful.
+# Target: blocker.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:blocker.cmo, file:blocker.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o blocker.cmo blocker.ml
++ /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o blocker.cmo blocker.ml
+File "blocker.ml", line 170, characters 26-80:
+Warning 10: this expression should have type unit.
+File "blocker.ml", line 180, characters 27-81:
+Warning 10: this expression should have type unit.
+File "blocker.ml", line 50, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 54, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 61, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 103, characters 6-7:
+Warning 11: this match case is unused.
+File "blocker.ml", line 126, characters 7-20:
+Warning 26: unused variable phisFromFalse.
+File "blocker.ml", line 127, characters 7-20:
+Warning 26: unused variable phisFromSuite.
+File "blocker.ml", line 151, characters 8-9:
+Warning 11: this match case is unused.
+File "blocker.ml", line 153, characters 6-7:
+Warning 11: this match case is unused.
+File "blocker.ml", line 160, characters 6-7:
+Warning 11: this match case is unused.
+File "blocker.ml", line 162, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 172, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 182, characters 3-4:
+Warning 11: this match case is unused.
+File "blocker.ml", line 206, characters 10-11:
+Warning 11: this match case is unused.
+File "blocker.ml", line 210, characters 4-5:
+Warning 11: this match case is unused.
+File "blocker.ml", line 233, characters 6-7:
+Warning 11: this match case is unused.
+File "blocker.ml", line 235, characters 4-5:
+Warning 11: this match case is unused.
+File "blocker.ml", line 240, characters 6-7:
+Warning 26: unused variable p.
+# Target: blocker.byte, tags: { byte, dont_link_with, extension:byte, file:blocker.byte, link, ocaml, package(decap), program, quiet }
+/usr/bin/ocamlc -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml unix.cma str.cma decap.cma ast.cmo ast_printer.cmo llvm.cmo parser.cmo blocker.cmo -o blocker.byte
+# Compilation successful.
