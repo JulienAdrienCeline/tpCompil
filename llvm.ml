@@ -215,7 +215,17 @@ let emit_getelementptr env v indexes =
   let r = new_local env "adr" in
   Printf.bprintf env.block "   %s = getelementptr(%a, %a)\n" r print_value_with_type v print_args indexes;
   let ty = get_gep_type v.ty indexes in
-  { ty; access = r }
+  { ty=ty ; access = r }
+
+(* émission d'un call dans le cas d'un void *)
+let emit_call_void env fn args =
+  let _, var_args = fun_arity fn in
+  let ty = fun_res_type fn in
+  if var_args then
+    Printf.bprintf env.block "   call %a(%a)\n" print_value_with_type fn print_args args
+  else
+    Printf.bprintf env.block "   call %a %s(%a)\n" print_type ty fn.access print_args args;
+ 
 
 (* émission d'un call *)
 let emit_call env fn args =
@@ -226,7 +236,11 @@ let emit_call env fn args =
     Printf.bprintf env.block "   %s = call %a(%a)\n" r print_value_with_type fn print_args args
   else
     Printf.bprintf env.block "   %s = call %a %s(%a)\n" r print_type ty fn.access print_args args;
-  { ty; access = r }
+  { ty=ty ; access = r }
+
+(* émission d'un return *)
+let emit_ret_void env =
+  Printf.bprintf env.block "   ret void\n"
 
 (* émission d'un return *)
 let emit_ret env r =
@@ -257,9 +271,9 @@ let register_function genv name res_type ?(var_args=false) args =
 
 (* début de l'émission du code d'une fonction *)
 let start_function genv src_name =
-  let fn = try search_global genv src_name with Not_found ->
+   let fn = try search_global genv src_name with Not_found ->
     failwith "start function used with undeclared function"
-  in
+  	in
   let block = Buffer.create 100 in
   let env = {
     genv = genv;

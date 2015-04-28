@@ -4,24 +4,21 @@
 # Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, package(decap), quiet }
 /usr/bin/ocamldep -pp pa_ocaml -modules ast.ml > ast.ml.depends # cached
 # Target: ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast.cmo ast.ml # cached
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast.cmo ast.ml # cached
 # Target: ast_printer.ml.depends, tags: { extension:ml, file:ast_printer.ml, ocaml, ocamldep, package(decap), quiet }
 /usr/bin/ocamldep -pp pa_ocaml -modules ast_printer.ml > ast_printer.ml.depends # cached
 # Target: ast_printer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast_printer.cmo, file:ast_printer.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast_printer.cmo ast_printer.ml # cached
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o ast_printer.cmo ast_printer.ml # cached
 # Target: llvm.ml.depends, tags: { extension:ml, file:llvm.ml, ocaml, ocamldep, package(decap), quiet }
-/usr/bin/ocamldep -pp pa_ocaml -modules llvm.ml > llvm.ml.depends # cached
-# Target: llvm.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:llvm.cmo, file:llvm.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o llvm.cmo llvm.ml # cached
+/usr/bin/ocamldep -pp pa_ocaml -modules llvm.ml > llvm.ml.depends
 # Target: parser.ml.depends, tags: { extension:ml, file:parser.ml, ocaml, ocamldep, package(decap), quiet }
 /usr/bin/ocamldep -pp pa_ocaml -modules parser.ml > parser.ml.depends # cached
 # Target: parser.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:parser.cmo, file:parser.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o parser.cmo parser.ml # cached
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o parser.cmo parser.ml # cached
+# Target: llvm.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:llvm.cmo, file:llvm.ml, implem, ocaml, package(decap), quiet }
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o llvm.cmo llvm.ml
 # Target: compiler_julien.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:compiler_julien.cmo, file:compiler_julien.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler_julien.cmo compiler_julien.ml
-+ /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler_julien.cmo compiler_julien.ml
-File "compiler_julien.ml", line 34, characters 21-34:
-Error: This expression has type string but an expression was expected of type
-         Llvm.value
-Command exited with code 2.
-# Compilation unsuccessful.
+/usr/bin/ocamlc -c -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler_julien.cmo compiler_julien.ml
+# Target: compiler_julien.byte, tags: { byte, dont_link_with, extension:byte, file:compiler_julien.byte, link, ocaml, package(decap), program, quiet }
+/usr/bin/ocamlc -I /home/jujulejaffa/.opam/system/lib/decap -I /usr/lib/ocaml unix.cma str.cma decap.cma ast.cmo ast_printer.cmo llvm.cmo parser.cmo compiler_julien.cmo -o compiler_julien.byte
+# Compilation successful.

@@ -27,14 +27,17 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 				emit_load monEnv g
       with Not_found ->
 				failwith ("Unbound variable: "^id) )
-	 | Call(Fn_name fonction_name, arguments) -> try 
+	 | Call(Fn_name fonction_name, arguments) -> ( 
+			try 
 			search_local monEnv fonction_name 
 			with Not_found -> try 
 				let g = search_global (get_global monEnv) fonction_name in
-				emit_call monEnv fonction_name arguments
+				let args = List.map (function x -> evalExpr globEnv monEnv x) arguments in
+				emit_call monEnv g args
       with Not_found ->
-				failwith ("Unbound function: "^fonction_name) 
-	| _ -> failwith("Not Implemented Yet")
+				failwith ("Unbound function: "^fonction_name) )
+
+	| _ -> failwith("Expression Not Implemented Yet")
 
 let rec evalPhis (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
@@ -47,6 +50,15 @@ let rec evalPhis (globEnv:genv) (monEnv:env) : programme -> unit = function
 
 let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
+	| (Expr Call(Fn_name fonction_name, arguments))::suite ->  
+			(*try *)
+				let g = search_global globEnv fonction_name in
+				let args = List.map (function x -> evalExpr globEnv monEnv x) arguments in
+				let _ = emit_call_void monEnv g args in
+				evalProg globEnv monEnv suite
+     			 (*with Not_found ->
+				failwith ("Unbound function: "^fonction_name) *)
+ 
 	| (Affectation(Id_name id, expr))::suite ->
 			let v = evalExpr globEnv monEnv expr in
 			let al = emit_alloca monEnv v.ty in
@@ -73,7 +85,21 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			(* dans le lbfin, il faut définir des phi pour toutes les variables modifiées par lbtrue *)
 			(* et il faut aussi retravailler les variables modifiées par lbfin *)
 			evalProg globEnv monEnv suite
-	| _ -> failwith "Not Implemented Yet"
+	| (Instr_complexe Def(Fn_name fonction_name, params, programme))::suite ->
+			let p = List.map (function (Id_name x) -> ( x , Int 32)) params in
+			let _ = register_function globEnv fonction_name Void p in		
+			let deb = start_function globEnv fonction_name in
+			(*let lblfct = new_label () in
+			let _ = emit_block deb lblfct in*)
+			
+			let _ = evalProg globEnv deb programme in
+			(*let _ = emit_br deb lblfct in*)
+			let _ = emit_ret_void deb in
+			let _ = end_function deb in
+			evalProg globEnv monEnv suite
+
+	| _ -> failwith "Instruction Not Implemented Yet"
+
 
 let _ = Decap.handle_exception (fun () ->
   let p = Decap.parse_channel (programme 0) blank stdin in 
@@ -81,9 +107,9 @@ let _ = Decap.handle_exception (fun () ->
 	let _ = declare_extern genv "@printf" (Int 32) ~var_args:true [Ptr (Int 8)] in
 	let mainEnv = start_init_code genv in
 	let lbbefore = new_label () in
-	let _ = emit_br mainEnv lbbefore in
+	(*let _ = emit_br mainEnv lbbefore in*)
 	let _ = emit_block mainEnv lbbefore in
-	let _ = evalProg genv mainEnv p in 
+	let _ = evalProg genv mainEnv p in
 	let _ = end_init_code mainEnv in 
 	end_emit_file genv stdout
 	)()
