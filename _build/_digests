@@ -3,10 +3,18 @@
 "Rule: ocaml dependencies ml (%=llvm )": "[P\002\207 \187!\011\243\182(\026p9\tU"
 "Resource: /home/celine/Documents/ProjetsComplets/tpCompil/ast.ml": "\r.\020\209O\220\151o#\161\149iN\\\178O"
 "Rule: ocaml dependencies ml (%=compiler )": "\132*\223\016]H\023\214\002\183gv\181\tUV"
+<<<<<<< HEAD
 "Rule: ocaml dependencies ml (%=testparser )": "q\253\187|\189\196R\203\023\234\157\177mr\137\233"
 "Resource: /home/jujulejaffa/Bureau/Compilation/tpCompil/llvm.ml": "5]M\138\019,{\014\004\200\154\\\001\204\192q"
 "Rule: ocaml dependencies ml (%=ast_printer )": "7\254[\224f^\248\233\210\163c\028D\158\163\158"
 "Rule: ocaml: ml -> cmo & cmi (%=parser )": "2\1905\211H2\255\221\132\200r\r\1507w\249"
+=======
+"Rule: ocaml: cmo* -> byte (%=blocker )": "F\177u\t\218\138\132\205\230\1803&IF\215\t"
+"Resource: /home/jujulejaffa/Bureau/Compilation/tpCompil/llvm.ml": "\131,\015l4\156R>Q\t2\186\184\172\025~"
+"Rule: ocaml dependencies ml (%=ast_printer )": "7\254[\224f^\248\233\210\163c\028D\158\163\158"
+"Rule: ocaml dependencies ml (%=blocker )": "\191\173\136\156\232\007S\t\156C\005\166\219\014\023\231"
+"Rule: ocaml: ml -> cmo & cmi (%=parser )": "\194\241d\217\019w4\157o\197|\005W;Y\006"
+>>>>>>> 79fbdf4fb8b0f350f44eed0fd600759c98f57483
 "Rule: ocaml: cmo* -> byte (%=parsermoi )": "\155\198 d\1528~%\183\158U\155\166Vh\249"
 "Rule: ocaml dependencies ml (%=semantic )": "2\160\221\012\254\1532\012\144\244-\030\195\203|4"
 "Rule: ocaml: ml -> cmo & cmi (%=testparser )": "\177R\027\165\012\254\218\132\201q\134\135;\151f\183"
@@ -15,7 +23,11 @@
 "Rule: ocaml: cmo* -> byte (%=ast_printer )": "\190\198\019\161\168r@zPSx\216\134\202>\170"
 "Resource: /home/celine/Documents/ExosInfo/805/parser.ml": "U\029\001\229C\025VSR\022\141\147\248\022u\154"
 "Rule: ocaml: cmo* -> byte (%=old_compiler03 )": "\207jf\021\174z\182\159\151\214\181\184\190x\1426"
+<<<<<<< HEAD
 "Rule: ocaml: cmo* -> byte (%=compiler_julien )": "\214\246\220\b\006\237\239N\218\247\230\243hf\169\025"
+=======
+"Rule: ocaml: ml -> cmo & cmi (%=blocker )": "k\133\191\148\193\208\207\147\227\216$\171\004/\227\024"
+>>>>>>> 79fbdf4fb8b0f350f44eed0fd600759c98f57483
 "Resource: /home/celine/Documents/ExosInfo/805/llvm.ml": "\029\188\232h\136!\005\223\r2XY\154DO\016"
 "Resource: /home/jujulejaffa/Bureau/Compilation/tpCompil/ast.ml": "\r.\020\209O\220\151o#\161\149iN\\\178O"
 "Resource: /home/jujulejaffa/Bureau/Compilation/tpCompil/ast_printer.ml": "\015\216|EqC\213}\029\137&\226\176\188\235\237"
@@ -29,9 +41,14 @@
 "Rule: ocaml: ml -> cmo & cmi (%=compiler_julien )": "\194\199$\030\164P\154\150\214\244f\207\181\131\161\018"
 "Resource: /home/celine/Documents/ProjetsComplets/tpCompil/compiler.byte": "\129}\135\163F\194R\150\151\2371}\006\228t\235"
 "Rule: ocaml dependencies ml (%=ast )": "@KR\005@O\016\248\248\002\190F\221\180\181\208"
+<<<<<<< HEAD
 "Rule: ocaml: cmo* -> byte (%=testparser )": "\164S\226\195\165Q\026\026\186\203\225C\155\\\151\232"
 "Resource: /home/celine/Documents/ProjetsComplets/tpCompil/blocker.ml": "\211\016\159\235V\222\229\186\182\015\214OJ\199\245Q"
 "Rule: ocaml: cmo* -> byte (%=parser )": "~\177\171\211\016=\151\2529\157\171\"\026\230\251\237"
+=======
+"Resource: /home/celine/Documents/ProjetsComplets/tpCompil/blocker.ml": "\147\212y\219a\161\017?eLX\16045k!"
+"Rule: ocaml: cmo* -> byte (%=parser )": "i\244\016\230H\223\245z\231\003\007F~\156O\205"
+>>>>>>> 79fbdf4fb8b0f350f44eed0fd600759c98f57483
 "Rule: ocaml: ml -> cmo & cmi (%=parsermoi )": "\007\002t9f\139VL\237I\128\003\000\233Y\133"
 "Rule: ocaml dependencies ml (%=parsermoi )": "_|\226{\228RM;\196f\141\208\233^\194\027"
 "Resource: /home/celine/Documents/ProjetsComplets/tpCompil/llvm.ml": "\131,\015l4\156R>Q\t2\186\184\172\025~"
