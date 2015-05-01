@@ -59,6 +59,14 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 			let _ = Hashtbl.replace myTree.filsSuite lbTrue (Fils lbSuite) in (* noire *)
 			(* Si le block courant avait déjà une suite prévue, il faut faire cette suite après avoir parcouru le BlockSuite *)
 			(* TODO *)
+			let filsSuiteDuLabelCourant = Hashtbl.find myTree.filsSuite curentLabel in
+			(match filsSuiteDuLabelCourant with
+				NoFils -> ()
+				| Fils(lbSuiteDuLabelCourant) ->
+						let _ = Hashtbl.replace myTree.filsSuite curentLabel NoFils in (* supprimer ancienne noire *)
+						let _ = Hashtbl.replace myTree.filsSuite lbSuite (Fils lbSuiteDuLabelCourant) in (* la remettre au bout de la rouge *)
+						()
+			);
 			(* On refait le travail à l'intérieur du BlockTrue et du BlockSuite *)
 			let mlSousProg = makeLabels lbTrue myTree sousprog in
 			(match mlSousProg with 
