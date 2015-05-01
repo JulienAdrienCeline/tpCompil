@@ -28,20 +28,47 @@ let init_tree i =
 		filsSuite = Hashtbl.create i;
   }
   in
-	for i=1 to i do  
-		let lb = new_label () in
-		let _ = Hashtbl.add myTree.filsTrue lb NoFils in
-		let _ = Hashtbl.add myTree.filsFalse lb NoFils in
-		let _ = Hashtbl.add myTree.filsSuite lb NoFils in
-		()
-	done;
   myTree 
 
-let rec makeLabels : programme -> programme = function
-	| Instr_complexe(If(a,sousprog))::suite -> Instr_complexe(If(a,Label("label")::sousprog))::(makeLabels suite)
-	| Instr_complexe(Def(b,c,sousprog))::suite -> Instr_complexe(Def(b,c,(makeLabels sousprog)))::(makeLabels suite)
-	|	anyInstr::suite -> anyInstr::(makeLabels suite)
-	| [] -> []
+let rec makeLabels myTree : programme -> (tree * programme) = function
+	| Instr_complexe(If(a,sousprog))::suite -> 
+			let lbTrue = new_label () in
+			let lbSuite = new_label ()
+			let _ = Hashtbl.add myTree.filsTrue lbTrue NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbTrue NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbTrue NoFils in
+			let _ = Hashtbl.add myTree.filsTrue lbSuite NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbSuite NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbSuite NoFils in
+			let mlSousProg = makeLabels myTree sousprog in
+			(match mlSousProg with 
+				(newTree, newSousprog) -> 
+					let mlSuite = makeLabels newTree suite in
+					(match mlSuite with
+						(newNewTree, newSuite) ->
+					 		(newNewTree, 
+								Instr_complexe(If(a,Label(lbTrue)::newSousprog))
+								::(Label(lbSuite)::newSuite)
+							)
+					)
+			)
+	| Instr_complexe(Def(b,c,sousprog))::suite -> 
+			let mlSousProg = makeLabels myTree sousprog in
+			(match mlSousProg with 
+				(newTree, newSousprog) -> 
+					let mlSuite = makeLabels newTree suite in
+					(match mlSuite with
+						(newNewTree, newSuite) ->
+					 		(newNewTree, Instr_complexe(Def(b,c,newSousprog))::newSuite)
+					)
+			)
+	|	anyInstr::suite -> 
+		let mlSuite = makeLabels myTree suite in
+		(match mlSuite with
+			(newTree, newSuite) -> 
+				(newTree, anyInstr::newSuite)
+		)
+	| [] -> (myTree, [])
 
 let string_of_fils : fils -> string = function
 	| Fils(f) -> f
@@ -63,18 +90,6 @@ let printTree myTree =
 	Printf.printf "filsSuite : ";
 	print_tbl myTree.filsSuite;
 	Printf.printf "\n"
-
-(* let rec makeTree : (tree * programme) -> (myTree, prog) = function
-	| (unArbre, []) -> (unArbre,[])
-	| (unArbre, Instr_complexe(If(_,sousprog))::suite) -> 
-			let unNouvelArbre = {
-				filsTrue = 
-			} in
-			let resSousProg = makeTree (unNouvelArbre,sousprog) in
-			(match resSousProg with
-				(unAutreArbre,[]) -> 
-					makeTree (unAutreArbre,suite))
-	| (unArbre, anyInstr::suite) -> makeTree (unArbre,suite) *)
 	
 
 let _ = Decap.handle_exception (fun () ->
@@ -84,7 +99,10 @@ let _ = Decap.handle_exception (fun () ->
 	let _ = printAll p in
 	let myTree = init_tree i in
 	let _ = printTree myTree in
-	let p = makeLabels p in
-	let _ = printAll p in
-	()
+	let res = makeLabels myTree p in
+	match res with
+		(newTree , newProg) ->
+			let _ = printAll newProg in
+			let _ = printTree newTree in
+			()
 	)()

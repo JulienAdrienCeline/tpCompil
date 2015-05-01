@@ -4,7 +4,7 @@
 Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
 Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
 Print( Id( Id_name( a ) ) )
-IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( bc ) ) ),
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
 
  Programme(
 Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
@@ -28,37 +28,33 @@ filsTrue :
 filsFalse : 
 filsSuite : 
 
-Programme(
-	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
-	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
-	Print( Id( Id_name( a ) ) )
-	IC( 
-		If( 
-			Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+ Programme(
+Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+Print( Id( Id_name( a ) ) )
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
 
-			Programme(
-				Label( label1 )
-				Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
-				IC( 
-					If( 
-						Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+ Programme(
+Label( label1 )
+Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
 
-						Programme(
-							Label( label3 )
-							Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
-						)
+ Programme(
+Label( label3 )
+Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+)
 
-					)
-				)
-				Label( label4 )
-				Print( Id( Id_name( d ) ) )
-			)
+)
+ )
+Label( label4 )
+Print( Id( Id_name( d ) ) )
+)
 
-		)
-	)
-	Label( label2 )
-	Print( Id( Id_name( a ) ) )
-	Print( Id( Id_name( b ) ) )
+)
+ )
+Label( label2 )
+Print( Id( Id_name( a ) ) )
+Print( Id( Id_name( b ) ) )
 )
 filsTrue : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
 filsFalse : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
