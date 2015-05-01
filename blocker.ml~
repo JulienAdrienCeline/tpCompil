@@ -7,43 +7,67 @@ type fils =
 	Fils of label
 	| NoFils
 
+(* Arbre ternaire, à chaque if on crée un noeud (= un label), chaque label a un fils true, un fils false et un fils suite *)
+(* Le fils est un noeud (= un label) ou NoFils si c'était une feuille *)
+type fils =
+	Fils of label
+	| NoFils
 type tree = {
-	filsTrue: (label , fils) Hashtbl.t;
-	filsFalse: (label , fils) Hashtbl.t;
-	filsSuite: (label , fils) Hashtbl.t;
+	filsTrue: (label , fils) Hashtbl.t; (* où va-t-on si la condition est vérifiée *)
+	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
+	filsSuite: (label , fils) Hashtbl.t; (* où ira-t-on après si la condition est vérifiée *)
 }
 
+(* On pourra prévoir au départ le nombre de noeuds nécessaire, en comptant les if dans le programme *)
+(* => permettra d'initialiser les Hashtbl à la bonne taille *)
 let rec countIf : programme -> int = function
 	| Instr_complexe(If(_,sousprog))::suite -> 1 + (countIf sousprog) + (countIf suite)
 	| Instr_complexe(Def(_,_,sousprog))::suite -> (countIf sousprog) + (countIf suite)
 	|	anyInstr::suite -> (countIf suite)
 	| [] -> 0
-
 let countLabels prog = 1 + 2 * (countIf prog)
 
-let init_tree i =
+(* On initialise les Hashtbl à la bonne taille, et on place le label racine de l'arbre au début du programme *)
+let init_tree i p =
   let myTree = {
     filsTrue = Hashtbl.create i;
     filsFalse = Hashtbl.create i;
 		filsSuite = Hashtbl.create i;
   }
   in
-  myTree 
+	let lbInit = new_label () in
+	let p = Ast.Label(lbInit)::p in
+	let _ = Hashtbl.add myTree.filsTrue lbInit NoFils in
+	let _ = Hashtbl.add myTree.filsFalse lbInit NoFils in
+	let _ = Hashtbl.add myTree.filsSuite lbInit NoFils in
+	(lbInit, myTree , p)
 
-let rec makeLabels myTree : programme -> (tree * programme) = function
+(* On construit l'arbre en suivant notre algo de graphe. *)
+let rec makeLabels curentLabel myTree : programme -> (tree * programme) = function
+	(* If(Condition) then BlockTrue EndIf BlockSuite *)
 	| Instr_complexe(If(a,sousprog))::suite -> 
+			(* On construit les labels de début du BlockTrue et du BlockSuite *)
 			let lbTrue = new_label () in
-			let lbSuite = new_label ()
+			let lbSuite = new_label () in
 			let _ = Hashtbl.add myTree.filsTrue lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsFalse lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsTrue lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsFalse lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbSuite NoFils in
-			let mlSousProg = makeLabels myTree sousprog in
+			(* Si la condition n'est pas vérifiée, on ira directement au BlockSuite *)
+			let _ = Hashtbl.replace myTree.filsFalse curentLabel (Fils lbSuite) in (* rouge *)
+			(* Si la condition est vérifiée, on ira BlockTrue *)
+			let _ = Hashtbl.replace myTree.filsTrue curentLabel (Fils lbTrue) in (* verte *)
+			(* Si la condition est vérifiée, après avoir fait le BlockTrue on fera le BlockSuite *)
+			let _ = Hashtbl.replace myTree.filsSuite lbTrue (Fils lbSuite) in (* noire *)
+			(* Si le block courant avait déjà une suite prévue, il faut faire cette suite après avoir parcouru le BlockSuite *)
+			(* TODO *)
+			(* On refait le travail à l'intérieur du BlockTrue et du BlockSuite *)
+			let mlSousProg = makeLabels lbTrue myTree sousprog in
 			(match mlSousProg with 
 				(newTree, newSousprog) -> 
-					let mlSuite = makeLabels newTree suite in
+					let mlSuite = makeLabels lbSuite newTree suite in
 					(match mlSuite with
 						(newNewTree, newSuite) ->
 					 		(newNewTree, 
@@ -52,34 +76,35 @@ let rec makeLabels myTree : programme -> (tree * programme) = function
 							)
 					)
 			)
+	(* autres instructions : l'arbre reste inchangé, on continue *)
 	| Instr_complexe(Def(b,c,sousprog))::suite -> 
-			let mlSousProg = makeLabels myTree sousprog in
+			let mlSousProg = makeLabels curentLabel myTree sousprog in
 			(match mlSousProg with 
 				(newTree, newSousprog) -> 
-					let mlSuite = makeLabels newTree suite in
+					let mlSuite = makeLabels curentLabel newTree suite in
 					(match mlSuite with
 						(newNewTree, newSuite) ->
 					 		(newNewTree, Instr_complexe(Def(b,c,newSousprog))::newSuite)
 					)
 			)
 	|	anyInstr::suite -> 
-		let mlSuite = makeLabels myTree suite in
+		let mlSuite = makeLabels curentLabel myTree suite in
 		(match mlSuite with
 			(newTree, newSuite) -> 
 				(newTree, anyInstr::newSuite)
 		)
+	(* fin de récursion, il n'y a plus aucune instruction à évaluer, l'arbre et le programmes sont complets *)
 	| [] -> (myTree, [])
 
+
+(* Fonctions d'affichage pour débug *)
 let string_of_fils : fils -> string = function
 	| Fils(f) -> f
 	| NoFils -> "NoFils"
-
 let string_of_binome : (label * fils) -> string = function
 	| (lb, f) -> String.concat "" ["("; lb ; " , " ; (string_of_fils f) ; ")"]
-
 let print_tbl table = 
 	Hashtbl.iter ( fun lb f -> Printf.printf "%s " (string_of_binome (lb,f)) ) table
-
 let printTree myTree =
 	Printf.printf "filsTrue : ";
 	print_tbl myTree.filsTrue;
@@ -92,17 +117,21 @@ let printTree myTree =
 	Printf.printf "\n"
 	
 
+(* Exécution du programme *)
 let _ = Decap.handle_exception (fun () ->
   let p = Decap.parse_channel (programme 0) blank stdin in 
 	let i = countLabels p in
 	let _ = Printf.printf "%d labels\n" i in
 	let _ = printAll p in
-	let myTree = init_tree i in
-	let _ = printTree myTree in
-	let res = makeLabels myTree p in
-	match res with
-		(newTree , newProg) ->
-			let _ = printAll newProg in
-			let _ = printTree newTree in
-			()
+	let resInitial = init_tree i p in
+	match resInitial with
+		(firstLabel, myTree, newP) ->
+		let _ = printTree myTree in
+		let res = makeLabels firstLabel myTree newP in
+		(match res with
+			(newTree , newProg) ->
+				let _ = printAll newProg in
+				let _ = printTree newTree in
+				()
+		)
 	)()

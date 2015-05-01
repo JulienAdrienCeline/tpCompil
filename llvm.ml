@@ -4,10 +4,6 @@ type pred = string (* un prédicat de comparaison: "neq", "eq", ...*)
 type src_name = string (* un nom d'identifiant dans le programme source *)
 type llvm_global = string (* un nom global llvm: commence par @ *)
 
-type graph =
-	None
-	| Noeud of label * graph * graph
-
 (* une AST pour les types de LLVM (il en manque, comme les tableaux, vecteur, structures ...) *)
 type llvm_type =
 | Void

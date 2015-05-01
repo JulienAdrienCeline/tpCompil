@@ -4,7 +4,7 @@
 Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
 Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
 Print( Id( Id_name( a ) ) )
-IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( bc ) ) ),
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
 
  Programme(
 Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
@@ -24,42 +24,39 @@ Print( Id( Id_name( d ) ) )
 Print( Id( Id_name( a ) ) )
 Print( Id( Id_name( b ) ) )
 )
-filsTrue : 
-filsFalse : 
-filsSuite : 
+filsTrue : (label1 , NoFils) 
+filsFalse : (label1 , NoFils) 
+filsSuite : (label1 , NoFils) 
 
-Programme(
-	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
-	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
-	Print( Id( Id_name( a ) ) )
-	IC( 
-		If( 
-			Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+ Programme(
+Label( label1 )
+Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+Print( Id( Id_name( a ) ) )
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
 
-			Programme(
-				Label( label1 )
-				Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
-				IC( 
-					If( 
-						Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+ Programme(
+Label( label2 )
+Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
 
-						Programme(
-							Label( label3 )
-							Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
-						)
-
-					)
-				)
-				Label( label4 )
-				Print( Id( Id_name( d ) ) )
-			)
-
-		)
-	)
-	Label( label2 )
-	Print( Id( Id_name( a ) ) )
-	Print( Id( Id_name( b ) ) )
+ Programme(
+Label( label4 )
+Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
 )
-filsTrue : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
-filsFalse : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
-filsSuite : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
+
+)
+ )
+Label( label5 )
+Print( Id( Id_name( d ) ) )
+)
+
+)
+ )
+Label( label3 )
+Print( Id( Id_name( a ) ) )
+Print( Id( Id_name( b ) ) )
+)
+filsTrue : (label5 , NoFils) (label4 , NoFils) (label1 , label2) (label3 , NoFils) (label2 , label4) 
+filsFalse : (label5 , NoFils) (label4 , NoFils) (label1 , label3) (label3 , NoFils) (label2 , label5) 
+filsSuite : (label5 , NoFils) (label4 , label5) (label1 , NoFils) (label3 , NoFils) (label2 , label3) 

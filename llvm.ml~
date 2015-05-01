@@ -239,6 +239,10 @@ let emit_call env fn args =
   { ty=ty ; access = r }
 
 (* émission d'un return *)
+let emit_ret_void env =
+  Printf.bprintf env.block "   ret void\n"
+
+(* émission d'un return *)
 let emit_ret env r =
   Printf.bprintf env.block "   ret %a\n" print_value_with_type r
 
