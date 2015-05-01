@@ -1,0 +1,12 @@
+
+ Programme(
+IC( Def( Fn_name( fac ), [],
+
+ Programme(
+Affectation( Id_name( x ),Valeur( Int( 5 ) ) )
+Expr( Call( Fn_name( fac ), [] ) )
+)
+
+)
+ )
+)
