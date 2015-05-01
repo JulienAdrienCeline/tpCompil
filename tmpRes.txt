@@ -1,0 +1,55 @@
+5 labels
+
+ Programme(
+Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+Print( Id( Id_name( a ) ) )
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+
+ Programme(
+Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+
+ Programme(
+Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+)
+
+)
+ )
+Print( Id( Id_name( d ) ) )
+)
+
+)
+ )
+Print( Id( Id_name( a ) ) )
+Print( Id( Id_name( b ) ) )
+)
+filsTrue : (label5 , NoFils) (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
+filsFalse : (label5 , NoFils) (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
+filsSuite : (label5 , NoFils) (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
+
+ Programme(
+Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+Print( Id( Id_name( a ) ) )
+IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+
+ Programme(
+Label( label6 )
+Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+
+ Programme(
+Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+)
+
+)
+ )
+Print( Id( Id_name( d ) ) )
+)
+
+)
+ )
+Print( Id( Id_name( a ) ) )
+Print( Id( Id_name( b ) ) )
+)

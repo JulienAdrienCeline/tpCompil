@@ -37,6 +37,8 @@ let rec printInstr : instruction -> string = function
   |Return(exp) -> String.concat "" ["Return( " ; printExpr exp ; " )"]
   |Print(exp) -> String.concat "" ["Print( " ; printExpr exp ; " )"]
   |Expr(exp) -> String.concat "" ["Expr( "; printExpr exp ; " )"]
+	|Label(l) -> String.concat "" ["Label( "; l ; " )"]
+	|Phi(id, lb1, lb2) -> String.concat "" ["Phi( " ; printId id ; " -- " ; lb1 ; " -- " ; lb2 ; " )"]
 
 and printParams : params -> string =
 fun idList ->

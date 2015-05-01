@@ -1,0 +1,94 @@
+
+//Version sortie du parser
+Programme(
+	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+	Print( Id( Id_name( a ) ) )
+	IC( 
+		If( 
+			Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+			Programme(
+				Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+				IC( 
+					If( 
+						Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+						Programme(
+							Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+						)
+					)
+				)
+				Print( Id( Id_name( d ) ) )
+			)
+		)
+	)
+	Print( Id( Id_name( a ) ) )
+	Print( Id( Id_name( b ) ) )
+)
+
+Version avec label
+Programme(
+	Label( label1 )
+	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+	Print( Id( Id_name( a ) ) )
+	IC( 
+		If( 
+			Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+			Programme(
+				Label( label2 )
+				Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+				IC( 
+					If( 
+						Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+						Programme(
+							Label( label4 )
+							Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+						)
+					)
+				)
+				Label( label5 )
+				Print( Id( Id_name( d ) ) )
+			)
+		)
+	)
+	Label( label3 )
+	Print( Id( Id_name( a ) ) )
+	Print( Id( Id_name( b ) ) )
+)
+
+
+//Version avec phis
+Programme(
+	Label( label1 )
+	Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+	Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+	Print( Id( Id_name( a ) ) )
+	IC( 
+		If( 
+			Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+			Programme(
+				Label( label2 )
+				Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
+				IC( 
+					If( 
+						Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+						Programme(
+							Label( label4 )
+							Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+						)
+					)
+				)
+				Label( label5 )
+				Phi( Id_name( a ), label2, label4)
+				Phi( Id_name( b ), label2, label4)
+				Phi( Id_name( d ), label2, label4)
+				Print( Id( Id_name( d ) ) )
+			)
+		)
+	)
+	Label( label3 )
+	Phi( Id_name( a ), label1, label5)
+	Phi( Id_name( b ), label1, label5)
+	Print( Id( Id_name( a ) ) )
+	Print( Id( Id_name( b ) ) )
+)

@@ -23,6 +23,8 @@ type instruction =
   |Return of expression
   |Print of expression
   |Expr of expression
+	|Label of string
+	|Phi of (ident * string * string) (* nom_variable nom_labelsource1 nom_labelsource2 *)
 
 and instr_complexe =
   |Def of fonction_name * params * programme
