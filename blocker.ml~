@@ -12,6 +12,7 @@ type tree = {
 	filsTrue: (label , fils) Hashtbl.t; (* où va-t-on si la condition est vérifiée *)
 	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
 	filsSuite: (label , fils) Hashtbl.t; (* où ira-t-on après si la condition est vérifiée *)
+	variables: (label , (string list)) Hashtbl.t; (* quels noms de variables existent dans un label donné *)
 }
 
 (* On pourra prévoir au départ le nombre de noeuds nécessaire, en comptant les if dans le programme *)
@@ -29,6 +30,7 @@ let init_tree i p =
     filsTrue = Hashtbl.create i;
     filsFalse = Hashtbl.create i;
 		filsSuite = Hashtbl.create i;
+		variables = Hashtbl.create i;
   }
   in
 	let lbInit = new_label () in
@@ -36,21 +38,37 @@ let init_tree i p =
 	let _ = Hashtbl.add myTree.filsTrue lbInit NoFils in
 	let _ = Hashtbl.add myTree.filsFalse lbInit NoFils in
 	let _ = Hashtbl.add myTree.filsSuite lbInit NoFils in
+	let _ = Hashtbl.add myTree.variables lbInit [] in
 	(lbInit, myTree , p)
 
 (* On construit l'arbre en suivant notre algo de graphe. *)
 let rec makeLabels curentLabel myTree : programme -> (tree * programme) = function
+	(* Si on rencontre l'affectation d'une nouvelle variable, il faut l'ajouter au scope du label courant *)
+	| Affectation(Id_name id, expr)::suite ->
+			let variablesDuLabelCourant = Hashtbl.find myTree.variables curentLabel in
+			let _ = try List.find (fun name -> (name = id)) variablesDuLabelCourant with Not_found -> 
+				let _ = Hashtbl.replace myTree.variables curentLabel (id::variablesDuLabelCourant) in
+				""
+			in
+			let mlSuite = makeLabels curentLabel myTree suite in
+			(match mlSuite with
+				(newTree, newSuite) -> 
+					(newTree, Affectation(Id_name id, expr)::newSuite)
+			)
 	(* If(Condition) then BlockTrue EndIf BlockSuite *)
 	| Instr_complexe(If(a,sousprog))::suite -> 
 			(* On construit les labels de début du BlockTrue et du BlockSuite *)
 			let lbTrue = new_label () in
 			let lbSuite = new_label () in
+			let variablesDuLabelCourant = Hashtbl.find myTree.variables curentLabel in
 			let _ = Hashtbl.add myTree.filsTrue lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsFalse lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbTrue NoFils in
+			let _ = Hashtbl.add myTree.variables lbTrue variablesDuLabelCourant in
 			let _ = Hashtbl.add myTree.filsTrue lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsFalse lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbSuite NoFils in
+			let _ = Hashtbl.add myTree.variables lbSuite variablesDuLabelCourant in
 			(* Si la condition n'est pas vérifiée, on ira directement au BlockSuite *)
 			let _ = Hashtbl.replace myTree.filsFalse curentLabel (Fils lbSuite) in (* rouge *)
 			(* Si la condition est vérifiée, on ira BlockTrue *)
@@ -58,15 +76,15 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 			(* Si la condition est vérifiée, après avoir fait le BlockTrue on fera le BlockSuite *)
 			let _ = Hashtbl.replace myTree.filsSuite lbTrue (Fils lbSuite) in (* noire *)
 			(* Si le block courant avait déjà une suite prévue, il faut faire cette suite après avoir parcouru le BlockSuite *)
-			(* TODO *)
 			let filsSuiteDuLabelCourant = Hashtbl.find myTree.filsSuite curentLabel in
 			(match filsSuiteDuLabelCourant with
 				NoFils -> ()
 				| Fils(lbSuiteDuLabelCourant) ->
 						let _ = Hashtbl.replace myTree.filsSuite curentLabel NoFils in (* supprimer ancienne noire *)
-						let _ = Hashtbl.replace myTree.filsSuite lbSuite (Label lbSuiteDuLabelCourant) in (* la remettre au bout de la rouge *)
+						let _ = Hashtbl.replace myTree.filsSuite lbSuite (Fils lbSuiteDuLabelCourant) in (* la remettre au bout de la rouge *)
 						()
 			);
+			(* Les enfants connaissent les variables de leur parent *)
 			(* On refait le travail à l'intérieur du BlockTrue et du BlockSuite *)
 			let mlSousProg = makeLabels lbTrue myTree sousprog in
 			(match mlSousProg with 
@@ -109,6 +127,10 @@ let string_of_binome : (label * fils) -> string = function
 	| (lb, f) -> String.concat "" ["("; lb ; " , " ; (string_of_fils f) ; ")"]
 let print_tbl table = 
 	Hashtbl.iter ( fun lb f -> Printf.printf "%s " (string_of_binome (lb,f)) ) table
+let string_of_list aList =
+	String.concat "" [ "[ " ; String.concat " ; " aList ; " ]" ]
+let print_vars table =
+	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_list aList) ) table
 let printTree myTree =
 	Printf.printf "filsTrue : ";
 	print_tbl myTree.filsTrue;
@@ -118,6 +140,9 @@ let printTree myTree =
 	Printf.printf "\n";
 	Printf.printf "filsSuite : ";
 	print_tbl myTree.filsSuite;
+	Printf.printf "\n";
+	Printf.printf "variables : ";
+	print_vars myTree.variables;
 	Printf.printf "\n"
 	
 
