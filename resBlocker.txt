@@ -28,6 +28,7 @@ filsTrue : (label1 , NoFils)
 filsFalse : (label1 , NoFils) 
 filsSuite : (label1 , NoFils) 
 variables : ( label1 : [  ])
+phis : ( label1 : [  ])
 
  Programme(
 Label( label1 )
@@ -62,3 +63,4 @@ filsTrue : (label5 , NoFils) (label4 , NoFils) (label1 , label2) (label3 , NoFil
 filsFalse : (label5 , NoFils) (label4 , NoFils) (label1 , label3) (label3 , NoFils) (label2 , label5) 
 filsSuite : (label5 , label3) (label4 , label5) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
 variables : ( label5 : [ d ; b ; a ])( label4 : [ d ; b ; a ])( label1 : [ b ; a ])( label3 : [ b ; a ])( label2 : [ d ; b ; a ])
+phis : ( label1 : [  ])

@@ -8,12 +8,22 @@ open Ast_printer
 type fils =
 	Fils of label
 	| NoFils
+type parent =
+	Parent of label
+	| NoParent
+type phi = {
+	variable: string;
+	parentFalse: parent;
+	parentSuite: parent;
+}
+
 type tree = {
 	filsTrue: (label , fils) Hashtbl.t; (* où va-t-on si la condition est vérifiée *)
 	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
 	filsSuite: (label , fils) Hashtbl.t; (* où ira-t-on après si la condition est vérifiée *)
 	variables: (label , (string list)) Hashtbl.t; (* quels noms de variables existent dans un label donné *)
-}
+	phis: (label, (phi list)) Hashtbl.t; (* chaque label possède un phi par variable *)
+} 
 
 (* On pourra prévoir au départ le nombre de noeuds nécessaire, en comptant les if dans le programme *)
 (* => permettra d'initialiser les Hashtbl à la bonne taille *)
@@ -31,6 +41,7 @@ let init_tree i p =
     filsFalse = Hashtbl.create i;
 		filsSuite = Hashtbl.create i;
 		variables = Hashtbl.create i;
+		phis = Hashtbl.create i;
   }
   in
 	let lbInit = new_label () in
@@ -39,6 +50,7 @@ let init_tree i p =
 	let _ = Hashtbl.add myTree.filsFalse lbInit NoFils in
 	let _ = Hashtbl.add myTree.filsSuite lbInit NoFils in
 	let _ = Hashtbl.add myTree.variables lbInit [] in
+	let _ = Hashtbl.add myTree.phis lbInit [] in
 	(lbInit, myTree , p)
 
 (* On construit l'arbre en suivant notre algo de graphe. *)
@@ -119,10 +131,18 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 	| [] -> (myTree, [])
 
 
+(* Lorsqu'on a l'arbre finalisé, on peut déterminer les phis : pour chaque noeud ambigue, 
+	si la condition était vérifié, on est passé par true puis on est allé à la suite
+	si la condition n'était pas vérifié, on est venu directement par false *)
+(* let makePhisFalse : tree -> tree in *)
+
 (* Fonctions d'affichage pour débug *)
 let string_of_fils : fils -> string = function
 	| Fils(f) -> f
 	| NoFils -> "NoFils"
+let string_of_parent : parent -> string = function
+	| Parent(f) -> f
+	| NoParent -> "NoParent"
 let string_of_binome : (label * fils) -> string = function
 	| (lb, f) -> String.concat "" ["("; lb ; " , " ; (string_of_fils f) ; ")"]
 let print_tbl table = 
@@ -131,6 +151,13 @@ let string_of_list aList =
 	String.concat "" [ "[ " ; String.concat " ; " aList ; " ]" ]
 let print_vars table =
 	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_list aList) ) table
+let string_of_phi p =
+	String.concat "" [ "{" ; p.variable ; " ; " ; string_of_parent p.parentFalse ; " ; " ; string_of_parent p.parentSuite ; "}"]
+let string_of_phiList pl = 
+	let str_list = List.map string_of_phi pl in
+	String.concat "" [ "[ " ; String.concat " ; " str_list ; " ]" ]
+let print_phis table =
+	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_phiList aList) ) table
 let printTree myTree =
 	Printf.printf "filsTrue : ";
 	print_tbl myTree.filsTrue;
@@ -143,6 +170,9 @@ let printTree myTree =
 	Printf.printf "\n";
 	Printf.printf "variables : ";
 	print_vars myTree.variables;
+	Printf.printf "\n";
+	Printf.printf "phis : ";
+	print_vars myTree.phis;
 	Printf.printf "\n"
 	
 
