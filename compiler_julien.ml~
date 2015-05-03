@@ -94,7 +94,7 @@ let rec evalProg (globEnv:genv) (monEnv:env) : programme -> unit = function
 			
 			let _ = evalProg globEnv deb programme in
 			(*let _ = emit_br deb lblfct in*)
-			let _ = emit_ret_void deb {ty : Void ; access : "void"} in
+			let _ = emit_ret_void deb in
 			let _ = end_function deb in
 			evalProg globEnv monEnv suite
 

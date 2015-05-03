@@ -1,21 +1,28 @@
 open Ast
 open Parser
-open Llvm
 open Ast_printer
+type label = string
+(* generation d'un nom de label *)
+let new_label =
+  let c = ref 0 in
+  (fun () -> incr c; "label" ^ string_of_int !c)
+
 
 (* Arbre ternaire, à chaque if on crée un noeud (= un label), chaque label a un fils true, un fils false et un fils suite *)
 (* Le fils est un noeud (= un label) ou NoFils si c'était une feuille *)
 type fils =
 	Fils of label
 	| NoFils
+(* On définit de même le type parent afin de l'utiliser dans les phis : en effet, on a besoin de savoir d'où vient un label donné *)
 type parent =
 	Parent of label
 	| NoParent
+(* Lorsqu'on entre dans un fils true, il n'y a qu'une origine possible, il n'y a donc que false et suite qui nous intéressent pour les phis *)
 type phi = {
 	parentFalse: parent;
 	parentSuite: parent;
 }
-
+(* Enfin, on a besoin de connaitre l'ensemble des variables définies dans un label, afin de leur appliquer un phi si besoin *)
 type tree = {
 	filsTrue: (label , fils) Hashtbl.t; (* où va-t-on si la condition est vérifiée *)
 	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
@@ -170,7 +177,10 @@ let makePhis : tree -> tree = fun myTree ->
 					Hashtbl.replace myTree.phis lbSuite phisDuFils
 	) myTree.filsSuite;
 	myTree
+
 	
+(* Les phis étant déterminés dans l'arbre, il faut les ajouter à l'ast du programme pour pouvoir les mettre dans le programme compilé ensuite *)
+(* Transformer les phis en liste d'instructions *)
 let transform_phis myTree aLabel =
 	let phisDuLabel = Hashtbl.find myTree.phis aLabel in
 	Hashtbl.fold ( fun aVar aPhi aList ->
@@ -181,7 +191,7 @@ let transform_phis myTree aLabel =
 			_ -> failwith("Phi exception")
 		)
 	) phisDuLabel []
-
+(* Placer ces listes d'instructions au bon endroit (ie après les débuts de label) dans le programme *)
 let rec ajouter_phis myTree : programme -> programme = function
 	| Label(aLabel)::suite -> List.concat [ [Ast.Label(aLabel)] ; (transform_phis myTree aLabel) ; (ajouter_phis myTree suite) ]
 	| Instr_complexe(Def(b,c,sousprog))::suite -> Instr_complexe(Def(b,c,(ajouter_phis myTree sousprog)))::(ajouter_phis myTree suite)
@@ -229,7 +239,7 @@ let printTree myTree =
 	
 
 (* Exécution du programme *)
-let _ = Decap.handle_exception (fun () ->
+(* let _ = Decap.handle_exception (fun () ->
   let p = Decap.parse_channel (programme 0) blank stdin in 
 	let i = countLabels p in
 	let _ = Printf.printf "%d labels\n" i in
@@ -247,4 +257,4 @@ let _ = Decap.handle_exception (fun () ->
 				let _ = printTree newTreeWithPhis in
 				()
 		)
-	)()
+	)()*)

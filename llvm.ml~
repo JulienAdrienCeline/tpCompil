@@ -1,12 +1,10 @@
+open Blocker
 type label = string (* un label llvm: commence par % *)
 type op_bin = string (* un opérateur binaire: "add", ... *)
 type pred = string (* un prédicat de comparaison: "neq", "eq", ...*)
 type src_name = string (* un nom d'identifiant dans le programme source *)
 type llvm_global = string (* un nom global llvm: commence par @ *)
 
-type graph =
-	None
-	| Noeud of label * graph * graph
 
 (* une AST pour les types de LLVM (il en manque, comme les tableaux, vecteur, structures ...) *)
 type llvm_type =
@@ -56,8 +54,6 @@ type env = {
   locals : (src_name, value) Hashtbl.t;
 	(* défini par moi : nom source d'une variable -> (nom_cible1, label1), (nom_cible2, label2) ... => tous les labels dans lequel il a été défini *)
 	labs : (src_name, (value * value) list) Hashtbl.t;
-	(* défini par moi : savoir où on est dans l'arbre des labels *)
-	(* lbStruct: graph; *)
   (* block courant (celui on l'on ajoute des instructions maintenant) *)
   block : Buffer.t;
   (* le label du block courant, "" pour le premier bloc d'une fonction *)
@@ -88,10 +84,6 @@ let new_local env (prefix:string) : string =
 let new_global genv prefix =
   "@" ^ new_aux genv.gnames prefix
 
-(* generation d'un nom de label *)
-let new_label =
-  let c = ref 0 in
-  (fun () -> incr c; "label" ^ string_of_int !c)
 
 (* recupération de l'arité d'une fonction à partir de son type *)
 let fun_arity v =
@@ -365,14 +357,79 @@ let emit_in_scope env defs fn =
   let res = fn () in
   res
 
-(* my_emit_phi trouve tous les labels origines d'après le nom source d'une variable *)
-let my_emit_phi env name =
+
+
+(* labs : (src_name, (value * value) list) Hashtbl.t; *)
+(* let my_other_emit_phi env name src1 src2 = *)
+(* let my_emit_phi env name =
 	let rec print_phis : Buffer.t -> (value * value) list -> unit = fun buffer -> function
     | [] -> ()
     | [x,y] -> Printf.bprintf buffer "[%s, %s]" x.access y.access
     | (x,y)::l -> Printf.bprintf buffer "[%s, %s],%a" x.access y.access print_phis l
   in
 	let ls = Hashtbl.find env.labs name in
+  let r = new_local env "phi" in
+  let actualType = match ls with
+      (x,_)::_ -> x.ty
+    | _ -> failwith "empty phis ?"
+  in
+	(* Hashtbl.remove env.locals name;
+	Hashtbl.add env.locals name {ty = actualType; access = r}; *)
+  Printf.bprintf env.block "   %s = phi %a %a\n" r print_type actualType print_phis ls;
+  { ty = actualType; access = r } *)
+
+(* Lorsqu'une variable a été définie dans un label x et qu'on veut faire un phi dans le label y,
+	il faut trouver le dernier fils de label x avant label y *)
+let rec find_real_src myTree str src1 src2 =
+	if (str = src1) then src1
+	else (
+		if (str = src2) then src2
+		else (
+			let filsTrue = Hashtbl.find myTree.filsTrue str in
+			( match filsTrue with
+					Fils(lb) -> find_real_src myTree lb src1 src2
+					| NoFils -> 
+							let filsSuite = Hashtbl.find myTree.filsSuite str in
+							( match filsSuite with
+								Fils(lb) -> find_real_src myTree lb src1 src2
+								| NoFils -> failwith("Problème pour trouver la source d'un phi")
+							)
+			)
+		)
+	)
+
+let rec find_real myTree src1 src2 : (value * value) list -> (value * value) list = function
+	(var, lab)::suite ->
+		let newLab = {
+			ty = lab.ty;
+			access = (String.concat "" ["%" ; (find_real_src myTree (String.sub lab.access 1 ((String.length lab.access) - 1)) src1 src2)])
+		} in
+		(var, newLab)::(find_real myTree src1 src2 suite)
+	| [] -> []
+
+let comparaison_pour_remove (variable1,label1) (variable2,label2) =
+	if (label1.access = label2.access) then false
+	else true
+
+let rec remove_doubles ls =
+  match ls with
+   | [] -> []
+   | h :: t ->
+     h :: (remove_doubles (List.filter (comparaison_pour_remove h) t))
+
+let my_find_phis env name myTree src1 src2 =
+	let ls = Hashtbl.find env.labs name in
+	let ls = find_real myTree src1 src2 ls in
+	let ls = remove_doubles ls in
+	ls
+
+(* my_emit_phi trouve tous les labels origines d'après le nom source d'une variable *)
+let my_emit_phi env name =
+	let rec print_phis : Buffer.t -> (value * value) list -> unit = fun buffer -> function
+		| [x,y] -> Printf.bprintf buffer "[%s, %s]" x.access y.access
+    | (x,y)::l -> Printf.bprintf buffer "[%s, %s],%a" x.access y.access print_phis l
+    | [] -> ()
+  in
   let r = new_local env "phi" in
   let actualType = match ls with
       (x,_)::_ -> x.ty
