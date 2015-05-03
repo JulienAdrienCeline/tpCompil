@@ -23,6 +23,11 @@ fac:                                    # @fac
 	jne	.LBB0_2
 # BB#1:                                 # %label3
 	movl	$12, %eax
+	movl	%esp, %ecx
+	leal	-16(%ecx), %edx
+	movl	%edx, %esp
+	movl	$8, -16(%ecx)
+	movl	$8, %esi
 	subl	$16, %esp
 	movl	%eax, 4(%esp)
 	movl	$str, (%esp)

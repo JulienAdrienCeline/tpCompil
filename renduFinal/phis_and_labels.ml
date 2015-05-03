@@ -1,0 +1,248 @@
+open Ast
+open Parser
+open Ast_printer
+
+
+type label = string
+(* generation d'un nom de label *)
+let new_label =
+  let c = ref 0 in
+  (fun () -> incr c; "label" ^ string_of_int !c)
+
+(* On va créer un arbre ternaire, à chaque if on crée un noeud (= un label), chaque label a un fils true, un fils false et un fils suite *)
+(* Le fils est un noeud (= un label) ou NoFils si c'était une feuille *)
+type fils =
+	Fils of label
+	| NoFils
+(* On définit de même le type parent afin de l'utiliser dans les phis : en effet, on a besoin de savoir d'où vient un label donné *)
+type parent =
+	Parent of label
+	| NoParent
+(* Lorsqu'on entre dans un fils true, il n'y a qu'une origine possible, il n'y a donc que false et suite qui nous intéressent pour les phis *)
+type phi = {
+	parentFalse: parent;
+	parentSuite: parent;
+}
+(* Enfin, on a besoin de connaitre l'ensemble des variables définies dans un label, afin de leur appliquer un phi si besoin *)
+type tree = {
+	filsTrue: (label , fils) Hashtbl.t; (* où va-t-on si la condition est vérifiée *)
+	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
+	filsSuite: (label , fils) Hashtbl.t; (* où ira-t-on après si la condition est vérifiée *)
+	variables: (label , (string list)) Hashtbl.t; (* quels noms de variables existent dans un label donné *)
+	phis: (label, ((string, phi) Hashtbl.t)) Hashtbl.t; (* chaque label possède un phi par variable *)
+} 
+
+(* On pourra prévoir au départ le nombre de noeuds nécessaire, en comptant les if dans le programme *)
+(* => permettra d'initialiser les Hashtbl à la bonne taille *)
+let rec countIf : programme -> int = function
+	| Instr_complexe(If(_,sousprog))::suite -> 1 + (countIf sousprog) + (countIf suite)
+	| Instr_complexe(Def(_,_,sousprog))::suite -> 1 + (countIf sousprog) + (countIf suite)
+	|	anyInstr::suite -> (countIf suite)
+	| [] -> 0
+let countLabels prog = 1 + 2 * (countIf prog)
+
+(* On initialise les Hashtbl à la bonne taille, et on place le label racine de l'arbre au début du programme *)
+let init_tree i p =
+  let myTree = {
+    filsTrue = Hashtbl.create i;
+    filsFalse = Hashtbl.create i;
+		filsSuite = Hashtbl.create i;
+		variables = Hashtbl.create i;
+		phis = Hashtbl.create i;
+  }
+  in
+	let lbInit = new_label () in
+	let p = Ast.Label(lbInit)::p in
+	let _ = Hashtbl.add myTree.filsTrue lbInit NoFils in
+	let _ = Hashtbl.add myTree.filsFalse lbInit NoFils in
+	let _ = Hashtbl.add myTree.filsSuite lbInit NoFils in
+	let _ = Hashtbl.add myTree.variables lbInit [] in
+	let _ = Hashtbl.add myTree.phis lbInit (Hashtbl.create 10) in
+	(lbInit, myTree , p)
+
+(* On construit l'arbre en suivant notre algo de graphe. *)
+let rec makeLabels curentLabel myTree : programme -> (tree * programme) = function
+	(* Si on rencontre l'affectation d'une nouvelle variable, il faut l'ajouter au scope du label courant *)
+	| Affectation(Id_name id, expr)::suite ->
+			let variablesDuLabelCourant = Hashtbl.find myTree.variables curentLabel in
+			let _ = try List.find (fun name -> (name = id)) variablesDuLabelCourant with Not_found -> 
+				let _ = Hashtbl.replace myTree.variables curentLabel (id::variablesDuLabelCourant) in
+				""
+			in
+			let mlSuite = makeLabels curentLabel myTree suite in
+			(match mlSuite with
+				(newTree, newSuite) -> 
+					(newTree, Affectation(Id_name id, expr)::newSuite)
+			)
+	(* If(Condition) then BlockTrue EndIf BlockSuite *)
+	| Instr_complexe(If(a,sousprog))::suite -> 
+			(* On construit les labels de début du BlockTrue et du BlockSuite *)
+			let lbTrue = new_label () in
+			let lbSuite = new_label () in
+			let variablesDuLabelCourant = Hashtbl.find myTree.variables curentLabel in
+			let _ = Hashtbl.add myTree.filsTrue lbTrue NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbTrue NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbTrue NoFils in
+			let _ = Hashtbl.add myTree.variables lbTrue variablesDuLabelCourant in
+			let _ = Hashtbl.add myTree.phis lbTrue (Hashtbl.create 10) in
+			let _ = Hashtbl.add myTree.filsTrue lbSuite NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbSuite NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbSuite NoFils in
+			let _ = Hashtbl.add myTree.variables lbSuite variablesDuLabelCourant in
+			let _ = Hashtbl.add myTree.phis lbSuite (Hashtbl.create 10) in
+			(* Si la condition n'est pas vérifiée, on ira directement au BlockSuite *)
+			let _ = Hashtbl.replace myTree.filsFalse curentLabel (Fils lbSuite) in (* rouge *)
+			(* Si la condition est vérifiée, on ira BlockTrue *)
+			let _ = Hashtbl.replace myTree.filsTrue curentLabel (Fils lbTrue) in (* verte *)
+			(* Si la condition est vérifiée, après avoir fait le BlockTrue on fera le BlockSuite *)
+			let _ = Hashtbl.replace myTree.filsSuite lbTrue (Fils lbSuite) in (* noire *)
+			(* Si le block courant avait déjà une suite prévue, il faut faire cette suite après avoir parcouru le BlockSuite *)
+			let filsSuiteDuLabelCourant = Hashtbl.find myTree.filsSuite curentLabel in
+			(match filsSuiteDuLabelCourant with
+				NoFils -> ()
+				| Fils(lbSuiteDuLabelCourant) ->
+						let _ = Hashtbl.replace myTree.filsSuite curentLabel NoFils in (* supprimer ancienne noire *)
+						let _ = Hashtbl.replace myTree.filsSuite lbSuite (Fils lbSuiteDuLabelCourant) in (* la remettre au bout de la rouge *)
+						()
+			);
+			(* Les enfants connaissent les variables de leur parent *)
+			(* On refait le travail à l'intérieur du BlockTrue et du BlockSuite *)
+			let mlSousProg = makeLabels lbTrue myTree sousprog in
+			(match mlSousProg with 
+				(newTree, newSousprog) -> 
+					let mlSuite = makeLabels lbSuite newTree suite in
+					(match mlSuite with
+						(newNewTree, newSuite) ->
+					 		(newNewTree, 
+								Instr_complexe(If(a,Label(lbTrue)::newSousprog))
+								::(Label(lbSuite)::newSuite)
+							)
+					)
+			)
+	(* autres instructions : l'arbre reste inchangé, on continue *)
+	| Instr_complexe(Def(b,params,sousprog))::suite -> 
+			let lbInitSousProg = new_label () in
+			let _ = Hashtbl.add myTree.filsTrue lbInitSousProg NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbInitSousProg NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbInitSousProg NoFils in
+			(* ((string list) -> Id_name(string) -> (string list)) -> (string list) -> Id_name(string) list -> (string list) *)
+			let myParamsList = List.fold_left (fun aList anId -> (match anId with Id_name(idName) -> idName::aList)) [] params in
+			let _ = Hashtbl.add myTree.variables lbInitSousProg myParamsList in
+			let _ = Hashtbl.add myTree.phis lbInitSousProg (Hashtbl.create 10) in
+			let mlSousProg = makeLabels lbInitSousProg myTree sousprog in
+			(match mlSousProg with 
+				(newTree, newSousprog) -> 
+					let mlSuite = makeLabels curentLabel newTree suite in
+					(match mlSuite with
+						(newNewTree, newSuite) ->
+					 		(newNewTree, Instr_complexe(Def(b,params,Label(lbInitSousProg)::newSousprog))::newSuite)
+					)
+			)
+	|	anyInstr::suite -> 
+		let mlSuite = makeLabels curentLabel myTree suite in
+		(match mlSuite with
+			(newTree, newSuite) -> 
+				(newTree, anyInstr::newSuite)
+		)
+	(* fin de récursion, il n'y a plus aucune instruction à évaluer, l'arbre et le programme sont complets *)
+	| [] -> (myTree, [])
+
+(* Lorsqu'on a l'arbre finalisé, on peut déterminer les phis : pour chaque noeud ambigue, 
+	si la condition était vérifiée, on est passé par true puis on est allé à la suite ( ==> filsSuite)
+	si la condition n'était pas vérifié, on est venu directement par false ( ==> filsFalse) 
+	les filsTrue n'ont qu'une seule origine, donc pas besoin de phi
+	normalement, si le programme en entrée était correct, un label doit avoir un parentFalse et un parentSuite ou aucun des deux
+*)
+let makePhis : tree -> tree = fun myTree ->
+	(* prévoir un phi pour chaque variable de chaque label ayant un parent false *)
+	Hashtbl.iter ( fun lb filsFalse -> 
+		match filsFalse with
+			NoFils -> ()
+			| Fils(lbFils) ->
+					let variablesDuParent = Hashtbl.find myTree.variables lb in
+					let phisDuFils = Hashtbl.create (List.length variablesDuParent) in
+					List.iter (fun aVar ->
+						let phiAvecParentFalse = {
+							parentFalse = Parent(lb);
+							parentSuite = NoParent;
+						} in
+						Hashtbl.add phisDuFils aVar phiAvecParentFalse 
+					) variablesDuParent;
+					Hashtbl.add myTree.phis lbFils phisDuFils
+	) myTree.filsFalse;
+	(* ces labels ont aussi un parent suite *)
+	Hashtbl.iter ( fun lb filsSuite -> 
+		match filsSuite with
+			NoFils -> ()
+			| Fils(lbSuite) ->
+					let phisDuFils = Hashtbl.find myTree.phis lbSuite in
+					Hashtbl.iter ( fun aVar aPhi ->
+						let phiAvecParentSuite = {
+							parentFalse = aPhi.parentFalse;
+							parentSuite = Parent(lb);
+						} in
+						Hashtbl.replace phisDuFils aVar  phiAvecParentSuite
+					) phisDuFils;
+					Hashtbl.replace myTree.phis lbSuite phisDuFils
+	) myTree.filsSuite;
+	myTree
+
+	
+(* Les phis étant déterminés dans l'arbre, il faut les ajouter à l'ast du programme pour pouvoir les mettre dans le programme compilé ensuite *)
+(* Transformer les phis en liste d'instructions *)
+let transform_phis myTree aLabel =
+	let phisDuLabel = Hashtbl.find myTree.phis aLabel in
+	Hashtbl.fold ( fun aVar aPhi aList ->
+		let parents = (aPhi.parentFalse, aPhi.parentSuite) in
+		(match parents with 
+			(Parent(lbParentFalse), Parent(lbParentSuite)) ->
+				Phi(Id_name(aVar) , lbParentFalse , lbParentSuite)::aList
+			_ -> failwith("Phi exception")
+		)
+	) phisDuLabel []
+(* Placer ces listes d'instructions au bon endroit (ie après les débuts de label) dans le programme *)
+let rec ajouter_phis myTree : programme -> programme = function
+	| Label(aLabel)::suite -> List.concat [ [Ast.Label(aLabel)] ; (transform_phis myTree aLabel) ; (ajouter_phis myTree suite) ]
+	| Instr_complexe(Def(b,c,sousprog))::suite -> Instr_complexe(Def(b,c,(ajouter_phis myTree sousprog)))::(ajouter_phis myTree suite)
+	| Instr_complexe(If(a,sousprog))::suite -> Instr_complexe(If(a,(ajouter_phis myTree sousprog)))::(ajouter_phis myTree suite)
+	| anyInstr::suite -> anyInstr::(ajouter_phis myTree suite)
+	| [] -> []
+
+(* Fonctions d'affichage pour débug *)
+let string_of_fils : fils -> string = function
+	| Fils(f) -> f
+	| NoFils -> "NoFils"
+let string_of_parent : parent -> string = function
+	| Parent(f) -> f
+	| NoParent -> "NoParent"
+let string_of_binome : (label * fils) -> string = function
+	| (lb, f) -> String.concat "" ["("; lb ; " , " ; (string_of_fils f) ; ")"]
+let print_tbl table = 
+	Hashtbl.iter ( fun lb f -> Printf.printf "%s " (string_of_binome (lb,f)) ) table
+let string_of_list aList =
+	String.concat "" [ "[ " ; String.concat " ; " aList ; " ]" ]
+let print_vars table =
+	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_list aList) ) table
+let string_of_phi p =
+	String.concat "" [ string_of_parent p.parentFalse ; " - " ; string_of_parent p.parentSuite ]
+let print_phiTbl table = 
+	Hashtbl.iter ( fun aVar aPhi -> Printf.printf "{ %s : %s } " aVar (string_of_phi aPhi) ) table
+let print_phis table =
+	Hashtbl.iter ( fun lb aTbl -> Printf.printf "( %s : " lb; (print_phiTbl aTbl); Printf.printf ")\n" ) table
+let printTree myTree =
+	Printf.printf "filsTrue : ";
+	print_tbl myTree.filsTrue;
+	Printf.printf "\n";
+	Printf.printf "filsFalse : ";
+	print_tbl myTree.filsFalse;
+	Printf.printf "\n";
+	Printf.printf "filsSuite : ";
+	print_tbl myTree.filsSuite;
+	Printf.printf "\n";
+	Printf.printf "variables : ";
+	print_vars myTree.variables;
+	Printf.printf "\n";
+	Printf.printf "phis : \n";
+	print_phis myTree.phis;
+	Printf.printf "\n"
+	

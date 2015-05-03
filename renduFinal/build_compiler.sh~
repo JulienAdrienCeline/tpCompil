@@ -1,0 +1,6 @@
+#!bin/bash
+ocamlbuild -pp pa_ocaml -pkgs decap compiler.byte
+./compiler.byte < ./tests/exemple.py > ./tests/resultat.ll
+llc ./tests/resultat.ll -o ./tests/resultat.ll
+gcc ./tests/resultat.s -o ./tests/resultat.native
+./tests/resultat.native

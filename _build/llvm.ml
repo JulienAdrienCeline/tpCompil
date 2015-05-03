@@ -288,11 +288,7 @@ let start_function genv src_name =
   Printf.bprintf env.block ";%s\ndefine %a %s(%a%s) nounwind {\n" src_name print_type ty name print_args params_cible (if var_args then ",..." else "");
   env
 
-(* comme on commence dans un label, on doit se souvenir *)
-(* variable locale : nom source -> nom cible *)
-  (*locals : (src_name, value) Hashtbl.t;*)
-	(* défini par moi : nom source d'une variable -> (nom_cible1, label1), (nom_cible2, label2) ... => tous les labels dans lequel il a été défini *)
-	(*labs : (src_name, (value * value) list) Hashtbl.t;*)
+(* comme on commence dans un label, on doit enregistrer les paramètres dans le label initial de la fonction *)
 let register_params_in_scope env lbinit =
 	(* pour chaque variable locale *)
 	Hashtbl.iter (fun src_name value ->
@@ -360,7 +356,6 @@ let search_labs env name =
 
 (* emit_in_scope modifié par moi *)
 let emit_in_scope env defs fn =
-	(* List.iter (fun (name, value) -> Hashtbl.remove env.locals name) defs; *)
   List.iter (fun (name, value) -> 
 		let r = search_labs env name in
 		Hashtbl.remove env.locals name;
@@ -429,8 +424,6 @@ let my_emit_phi env name ls =
       (x,_)::_ -> x.ty
     | _ -> failwith "empty phis ?"
   in
-	(* Hashtbl.remove env.locals name;
-	Hashtbl.add env.locals name {ty = actualType; access = r}; *)
   Printf.bprintf env.block "   %s = phi %a %a\n" r print_type actualType print_phis ls;
   { ty = actualType; access = r }
 

@@ -18,10 +18,14 @@ define void @fac(i32 %i, i32 %j) nounwind {
    %slt = icmp slt i32 %load, 10
    br i1 %slt, label %label3, label %label4
  label3:
+   %alloc1 = alloca i32
+   store i32 8, i32* %alloc1
+   %load1 = load i32* %alloc1
    %call = call i32 (i8*,...)* @printf(i8* getelementptr([4 x i8]* @str, i32 0, i32 0), i32 %load0)
    br label %label4
  label4:
-   %call0 = call i32 (i8*,...)* @printf(i8* getelementptr([4 x i8]* @str0, i32 0, i32 0), i32 %load)
+   %phi = phi i32 [%load1, %label3],[%load, %label2]
+   %call0 = call i32 (i8*,...)* @printf(i8* getelementptr([4 x i8]* @str0, i32 0, i32 0), i32 %phi)
    ret void
 }
 

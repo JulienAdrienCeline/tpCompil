@@ -4,6 +4,7 @@ def fac(i,j):
  c = 5
  d = 12
  if(c < 10):
+  c = 8
   print d
  print c
 fac(a,b)

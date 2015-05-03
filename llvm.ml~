@@ -412,13 +412,9 @@ let rec remove_doubles ls =
      h :: (remove_doubles (List.filter (comparaison_pour_remove h) t))
 
 let my_find_phis env name myTree src1 src2 =
-	let _ = Printf.eprintf("COUCOU DEBUT FIND\n") in
 	let ls = Hashtbl.find env.labs name in
-	let _ = Printf.eprintf("COUCOU SUITE FIND\n") in
 	let ls = find_real myTree src1 src2 ls in
-	let _ = Printf.eprintf("COUCOU FIN FIND_REAL\n") in
 	let ls = remove_doubles ls in
-	let _ = Printf.eprintf("COUCOU FIN REMOVE_DOUBLES\n") in
 	ls
 
 (* my_emit_phi trouve tous les labels origines d'après le nom source d'une variable *)

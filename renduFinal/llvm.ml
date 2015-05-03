@@ -1,4 +1,4 @@
-open Blocker
+open Phis_and_labels
 type label = string (* un label llvm: commence par % *)
 type op_bin = string (* un opérateur binaire: "add", ... *)
 type pred = string (* un prédicat de comparaison: "neq", "eq", ...*)
