@@ -12,7 +12,6 @@ type parent =
 	Parent of label
 	| NoParent
 type phi = {
-	variable: string;
 	parentFalse: parent;
 	parentSuite: parent;
 }
@@ -22,7 +21,7 @@ type tree = {
 	filsFalse: (label , fils) Hashtbl.t; (* où va-t-on si la condition n'est pas vérifiée *)
 	filsSuite: (label , fils) Hashtbl.t; (* où ira-t-on après si la condition est vérifiée *)
 	variables: (label , (string list)) Hashtbl.t; (* quels noms de variables existent dans un label donné *)
-	phis: (label, (phi list)) Hashtbl.t; (* chaque label possède un phi par variable *)
+	phis: (label, ((string, phi) Hashtbl.t)) Hashtbl.t; (* chaque label possède un phi par variable *)
 } 
 
 (* On pourra prévoir au départ le nombre de noeuds nécessaire, en comptant les if dans le programme *)
@@ -50,7 +49,7 @@ let init_tree i p =
 	let _ = Hashtbl.add myTree.filsFalse lbInit NoFils in
 	let _ = Hashtbl.add myTree.filsSuite lbInit NoFils in
 	let _ = Hashtbl.add myTree.variables lbInit [] in
-	let _ = Hashtbl.add myTree.phis lbInit [] in
+	let _ = Hashtbl.add myTree.phis lbInit (Hashtbl.create 10) in
 	(lbInit, myTree , p)
 
 (* On construit l'arbre en suivant notre algo de graphe. *)
@@ -77,10 +76,12 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 			let _ = Hashtbl.add myTree.filsFalse lbTrue NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbTrue NoFils in
 			let _ = Hashtbl.add myTree.variables lbTrue variablesDuLabelCourant in
+			let _ = Hashtbl.add myTree.phis lbTrue (Hashtbl.create 10) in
 			let _ = Hashtbl.add myTree.filsTrue lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsFalse lbSuite NoFils in
 			let _ = Hashtbl.add myTree.filsSuite lbSuite NoFils in
 			let _ = Hashtbl.add myTree.variables lbSuite variablesDuLabelCourant in
+			let _ = Hashtbl.add myTree.phis lbSuite (Hashtbl.create 10) in
 			(* Si la condition n'est pas vérifiée, on ira directement au BlockSuite *)
 			let _ = Hashtbl.replace myTree.filsFalse curentLabel (Fils lbSuite) in (* rouge *)
 			(* Si la condition est vérifiée, on ira BlockTrue *)
@@ -127,14 +128,58 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 			(newTree, newSuite) -> 
 				(newTree, anyInstr::newSuite)
 		)
-	(* fin de récursion, il n'y a plus aucune instruction à évaluer, l'arbre et le programmes sont complets *)
+	(* fin de récursion, il n'y a plus aucune instruction à évaluer, l'arbre et le programme sont complets *)
 	| [] -> (myTree, [])
 
 
+(* type tree = {
+	filsTrue: (label , fils) Hashtbl.t; 
+	filsFalse: (label , fils) Hashtbl.t; 
+	filsSuite: (label , fils) Hashtbl.t; 
+	variables: (label , (string list)) Hashtbl.t; 
+	phis: (label, ((string, phi) Hashtbl.t)) Hashtbl.t; 
+} *)
+
 (* Lorsqu'on a l'arbre finalisé, on peut déterminer les phis : pour chaque noeud ambigue, 
-	si la condition était vérifié, on est passé par true puis on est allé à la suite
-	si la condition n'était pas vérifié, on est venu directement par false *)
-(* let makePhisFalse : tree -> tree in *)
+	si la condition était vérifiée, on est passé par true puis on est allé à la suite ( ==> filsSuite)
+	si la condition n'était pas vérifié, on est venu directement par false ( ==> filsFalse) 
+	les filsTrue n'ont qu'une seule origine, donc pas besoin de phi
+	normalement, si le programme en entrée était correct, un label doit avoir un parentFalse et un parentSuite ou aucun des deux
+*)
+let makePhis : tree -> tree = fun myTree ->
+	(* prévoir un phi pour chaque variable de chaque label ayant un parent false *)
+	Hashtbl.iter ( fun lb filsFalse -> 
+		match filsFalse with
+			NoFils -> ()
+			| Fils(lbFils) ->
+					let variablesDuParent = Hashtbl.find myTree.variables lb in
+					let phisDuFils = Hashtbl.create (List.length variablesDuParent) in
+					List.iter (fun aVar ->
+						let phiAvecParentFalse = {
+							parentFalse = Parent(lb);
+							parentSuite = NoParent;
+						} in
+						Hashtbl.add phisDuFils aVar phiAvecParentFalse 
+					) variablesDuParent;
+					Hashtbl.add myTree.phis lbFils phisDuFils
+	) myTree.filsFalse;
+	(* ces labels ont aussi un parent suite *)
+	Hashtbl.iter ( fun lb filsSuite -> 
+		match filsSuite with
+			NoFils -> ()
+			| Fils(lbSuite) ->
+					let phisDuFils = Hashtbl.find myTree.phis lbSuite in
+					Hashtbl.iter ( fun aVar aPhi ->
+						let phiAvecParentSuite = {
+							parentFalse = aPhi.parentFalse;
+							parentSuite = Parent(lb);
+						} in
+						Hashtbl.replace phisDuFils aVar  phiAvecParentSuite
+					) phisDuFils;
+					Hashtbl.replace myTree.phis lbSuite phisDuFils
+	) myTree.filsSuite;
+	myTree
+	
 
 (* Fonctions d'affichage pour débug *)
 let string_of_fils : fils -> string = function
@@ -152,12 +197,11 @@ let string_of_list aList =
 let print_vars table =
 	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_list aList) ) table
 let string_of_phi p =
-	String.concat "" [ "{" ; p.variable ; " ; " ; string_of_parent p.parentFalse ; " ; " ; string_of_parent p.parentSuite ; "}"]
-let string_of_phiList pl = 
-	let str_list = List.map string_of_phi pl in
-	String.concat "" [ "[ " ; String.concat " ; " str_list ; " ]" ]
+	String.concat "" [ string_of_parent p.parentFalse ; " - " ; string_of_parent p.parentSuite ]
+let print_phiTbl table = 
+	Hashtbl.iter ( fun aVar aPhi -> Printf.printf "{ %s : %s } " aVar (string_of_phi aPhi) ) table
 let print_phis table =
-	Hashtbl.iter ( fun lb aList -> Printf.printf "( %s : %s)" lb (string_of_phiList aList) ) table
+	Hashtbl.iter ( fun lb aTbl -> Printf.printf "( %s : " lb; (print_phiTbl aTbl); Printf.printf ")\n" ) table
 let printTree myTree =
 	Printf.printf "filsTrue : ";
 	print_tbl myTree.filsTrue;
@@ -171,7 +215,7 @@ let printTree myTree =
 	Printf.printf "variables : ";
 	print_vars myTree.variables;
 	Printf.printf "\n";
-	Printf.printf "phis : ";
+	Printf.printf "phis : \n";
 	print_phis myTree.phis;
 	Printf.printf "\n"
 	
@@ -189,8 +233,9 @@ let _ = Decap.handle_exception (fun () ->
 		let res = makeLabels firstLabel myTree newP in
 		(match res with
 			(newTree , newProg) ->
+				let newTreeWithPhis = makePhis newTree in
 				let _ = printAll newProg in
-				let _ = printTree newTree in
+				let _ = printTree newTreeWithPhis in
 				()
 		)
 	)()
