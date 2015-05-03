@@ -131,15 +131,6 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 	(* fin de récursion, il n'y a plus aucune instruction à évaluer, l'arbre et le programme sont complets *)
 	| [] -> (myTree, [])
 
-
-(* type tree = {
-	filsTrue: (label , fils) Hashtbl.t; 
-	filsFalse: (label , fils) Hashtbl.t; 
-	filsSuite: (label , fils) Hashtbl.t; 
-	variables: (label , (string list)) Hashtbl.t; 
-	phis: (label, ((string, phi) Hashtbl.t)) Hashtbl.t; 
-} *)
-
 (* Lorsqu'on a l'arbre finalisé, on peut déterminer les phis : pour chaque noeud ambigue, 
 	si la condition était vérifiée, on est passé par true puis on est allé à la suite ( ==> filsSuite)
 	si la condition n'était pas vérifié, on est venu directement par false ( ==> filsFalse) 
@@ -180,6 +171,23 @@ let makePhis : tree -> tree = fun myTree ->
 	) myTree.filsSuite;
 	myTree
 	
+let transform_phis myTree aLabel =
+	let phisDuLabel = Hashtbl.find myTree.phis aLabel in
+	Hashtbl.fold ( fun aVar aPhi aList ->
+		let parents = (aPhi.parentFalse, aPhi.parentSuite) in
+		(match parents with 
+			(Parent(lbParentFalse), Parent(lbParentSuite)) ->
+				Phi(Id_name(aVar) , lbParentFalse , lbParentSuite)::aList
+			_ -> failwith("Phi exception")
+		)
+	) phisDuLabel []
+
+let rec ajouter_phis myTree : programme -> programme = function
+	| Label(aLabel)::suite -> List.concat [ [Ast.Label(aLabel)] ; (transform_phis myTree aLabel) ; (ajouter_phis myTree suite) ]
+	| Instr_complexe(Def(b,c,sousprog))::suite -> Instr_complexe(Def(b,c,(ajouter_phis myTree sousprog)))::(ajouter_phis myTree suite)
+	| Instr_complexe(If(a,sousprog))::suite -> Instr_complexe(If(a,(ajouter_phis myTree sousprog)))::(ajouter_phis myTree suite)
+	| anyInstr::suite -> anyInstr::(ajouter_phis myTree suite)
+	| [] -> []
 
 (* Fonctions d'affichage pour débug *)
 let string_of_fils : fils -> string = function
@@ -234,7 +242,8 @@ let _ = Decap.handle_exception (fun () ->
 		(match res with
 			(newTree , newProg) ->
 				let newTreeWithPhis = makePhis newTree in
-				let _ = printAll newProg in
+				let newProgWithPhis = ajouter_phis newTreeWithPhis newProg in
+				let _ = printAll newProgWithPhis in
 				let _ = printTree newTreeWithPhis in
 				()
 		)
