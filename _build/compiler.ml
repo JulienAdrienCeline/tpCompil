@@ -43,13 +43,13 @@ let rec evalExpr (globEnv:genv) (monEnv:env) : expression -> value = function
 let rec evalProg (myTree:tree) (globEnv:genv) (monEnv:env) : programme -> unit = function
 	| [] -> ()
 	| (Expr Call(Fn_name fonction_name, arguments))::suite ->  
-			(*try *)
+			(try 
 				let g = search_global globEnv fonction_name in
 				let args = List.map (function x -> evalExpr globEnv monEnv x) arguments in
 				let _ = emit_call_void monEnv g args in
 				evalProg myTree globEnv monEnv suite
-     			 (*with Not_found ->
-				failwith ("Unbound function: "^fonction_name) *)
+     			 with Not_found ->
+				failwith ("Unbound function: "^fonction_name) )
 	| (Affectation(Id_name id, expr))::suite ->
 			let v = evalExpr globEnv monEnv expr in
 			let al = emit_alloca monEnv v.ty in
@@ -73,28 +73,23 @@ let rec evalProg (myTree:tree) (globEnv:genv) (monEnv:env) : programme -> unit =
 			evalProg myTree globEnv monEnv suite
 	| (Instr_complexe If(expr,Label(lbtrue)::sousprog))::(Label lbfin)::suite ->
 			let macomparaison = evalExpr globEnv monEnv expr in
-			(* let lbtrue = new_label () in
-			let lbfin = new_label () in *)
 			let _ = emit_cond_br monEnv macomparaison lbtrue lbfin in 
 			let _ = emit_block monEnv lbtrue in
 			let _ = evalProg myTree globEnv monEnv sousprog in
 			let _ = emit_br monEnv lbfin in
 			let _ = emit_block monEnv lbfin in 
-			(* dans le lbfin, il faut définir des phi pour toutes les variables modifiées par lbtrue *)
-			(* et il faut aussi retravailler les variables modifiées par lbfin *)
 			evalProg myTree globEnv monEnv suite
-	| (Instr_complexe Def(Fn_name fonction_name, params, programme))::suite ->
+	| (Instr_complexe Def(Fn_name fonction_name, params, Label(lbinit)::programme))::suite ->
 			let p = List.map (function (Id_name x) -> ( x , Int 32)) params in
 			let _ = register_function globEnv fonction_name Void p in		
 			let deb = start_function globEnv fonction_name in
-			(*let lblfct = new_label () in
-			let _ = emit_block deb lblfct in*)
+			let deb = register_params_in_scope deb lbinit in
+			let _ = emit_br deb lbinit in
+			let _ = emit_block deb lbinit in
 			let _ = evalProg myTree globEnv deb programme in
-			(*let _ = emit_br deb lblfct in*)
 			let _ = emit_ret_void deb in
 			let _ = end_function deb in
 			evalProg myTree globEnv monEnv suite
-
 	| _ -> failwith "Instruction Not Implemented Yet"
 
 

@@ -278,13 +278,28 @@ let start_function genv src_name =
   in
   let name = fn.access in
   let args, params_cible, var_args = match fn.ty with
-      Fun(_,l,var_args) -> l, List.map (fun (name, ty) -> { ty; access = new_local env name }) l, var_args
+      Fun(_,l,var_args) -> l, List.map (fun (name, ty) -> { ty; access = new_local env name }
+			) l, var_args
     | _ -> failwith "non function in start_function"
   in
-  List.iter2 (fun (name, _) v -> Hashtbl.add env.locals name v) args params_cible;
+  List.iter2 (fun (name, _) v -> 
+				Hashtbl.add env.locals name v) args params_cible; 
   let ty = fun_res_type fn in
   Printf.bprintf env.block ";%s\ndefine %a %s(%a%s) nounwind {\n" src_name print_type ty name print_args params_cible (if var_args then ",..." else "");
   env
+
+(* comme on commence dans un label, on doit se souvenir *)
+(* variable locale : nom source -> nom cible *)
+  (*locals : (src_name, value) Hashtbl.t;*)
+	(* défini par moi : nom source d'une variable -> (nom_cible1, label1), (nom_cible2, label2) ... => tous les labels dans lequel il a été défini *)
+	(*labs : (src_name, (value * value) list) Hashtbl.t;*)
+let register_params_in_scope env lbinit =
+	(* pour chaque variable locale *)
+	Hashtbl.iter (fun src_name value ->
+		Hashtbl.add env.labs src_name [(value,{ty = Label; access = (String.concat "" [ "%"; lbinit])})]
+	) env.locals;
+	env
+
 
 (* fin de l'émission du code d'une fonction *)
 let end_function env =
@@ -356,27 +371,6 @@ let emit_in_scope env defs fn =
 	) defs;
   let res = fn () in
   res
-
-
-
-(* labs : (src_name, (value * value) list) Hashtbl.t; *)
-(* let my_other_emit_phi env name src1 src2 = *)
-(* let my_emit_phi env name =
-	let rec print_phis : Buffer.t -> (value * value) list -> unit = fun buffer -> function
-    | [] -> ()
-    | [x,y] -> Printf.bprintf buffer "[%s, %s]" x.access y.access
-    | (x,y)::l -> Printf.bprintf buffer "[%s, %s],%a" x.access y.access print_phis l
-  in
-	let ls = Hashtbl.find env.labs name in
-  let r = new_local env "phi" in
-  let actualType = match ls with
-      (x,_)::_ -> x.ty
-    | _ -> failwith "empty phis ?"
-  in
-	(* Hashtbl.remove env.locals name;
-	Hashtbl.add env.locals name {ty = actualType; access = r}; *)
-  Printf.bprintf env.block "   %s = phi %a %a\n" r print_type actualType print_phis ls;
-  { ty = actualType; access = r } *)
 
 (* Lorsqu'une variable a été définie dans un label x et qu'on veut faire un phi dans le label y,
 	il faut trouver le dernier fils de label x avant label y *)

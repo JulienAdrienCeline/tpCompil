@@ -5,13 +5,37 @@
 	.type	fac,@function
 fac:                                    # @fac
 # BB#0:
-	subl	$12, %esp
-	movl	16(%esp), %eax
-	addl	20(%esp), %eax
+	pushl	%ebp
+	movl	%esp, %ebp
+	pushl	%esi
+	pushl	%eax
+	movl	%esp, %eax
+	leal	-16(%eax), %ecx
+	movl	%ecx, %esp
+	movl	$5, -16(%eax)
+	movl	$5, %esi
+	movl	%esp, %eax
+	leal	-16(%eax), %ecx
+	movl	%ecx, %esp
+	movl	$12, -16(%eax)
+	xorl	%eax, %eax
+	testb	%al, %al
+	jne	.LBB0_2
+# BB#1:                                 # %label3
+	movl	$12, %eax
+	subl	$16, %esp
 	movl	%eax, 4(%esp)
 	movl	$str, (%esp)
 	calll	printf
-	addl	$12, %esp
+	addl	$16, %esp
+.LBB0_2:                                # %label4
+	subl	$16, %esp
+	movl	%esi, 4(%esp)
+	movl	$str0, (%esp)
+	calll	printf
+	leal	-4(%ebp), %esp
+	popl	%esi
+	popl	%ebp
 	ret
 .Ltmp0:
 	.size	fac, .Ltmp0-fac
@@ -21,7 +45,7 @@ fac:                                    # @fac
 	.type	main,@function
 main:                                   # @main
 	.cfi_startproc
-# BB#0:                                 # %label1
+# BB#0:
 	pushl	%ebp
 .Ltmp4:
 	.cfi_def_cfa_offset 8
@@ -30,102 +54,68 @@ main:                                   # @main
 	movl	%esp, %ebp
 .Ltmp6:
 	.cfi_def_cfa_register %ebp
-	pushl	%ebx
 	pushl	%edi
 	pushl	%esi
-	subl	$12, %esp
 .Ltmp7:
-	.cfi_offset %esi, -20
+	.cfi_offset %esi, -16
 .Ltmp8:
-	.cfi_offset %edi, -16
-.Ltmp9:
-	.cfi_offset %ebx, -12
-	movl	$3, -16(%ebp)
-	movl	$3, %edi
-	movl	$9, -20(%ebp)
-	movl	$9, %esi
+	.cfi_offset %edi, -12
+	movl	%esp, %eax
+	leal	-16(%eax), %ecx
+	movl	%ecx, %esp
+	movl	$3, -16(%eax)
+	movl	%esp, %eax
+	leal	-16(%eax), %ecx
+	movl	%ecx, %esp
+	movl	$9, -16(%eax)
 	subl	$16, %esp
 	movl	$9, 4(%esp)
 	movl	$3, (%esp)
 	calll	fac
 	addl	$16, %esp
-	subl	$16, %esp
-	movl	$3, 4(%esp)
-	movl	$str0, (%esp)
-	calll	printf
-	addl	$16, %esp
-	xorl	%eax, %eax
-	testb	%al, %al
-	jne	.LBB1_7
-# BB#1:                                 # %label2
-	movl	%esp, %eax
-	leal	-16(%eax), %ecx
-	movl	%ecx, %esp
-	movl	$12, -16(%eax)
-	movl	$12, %ebx
-	movl	%esp, %eax
-	leal	-16(%eax), %ecx
-	movl	%ecx, %esp
-	movl	$8, -16(%eax)
-	movl	$8, %edi
 	xorl	%eax, %eax
 	testb	%al, %al
 	jne	.LBB1_6
-# BB#2:                                 # %label4
-	movl	%esp, %eax
-	leal	-16(%eax), %ecx
-	movl	%ecx, %esp
-	movl	$9, -16(%eax)
-	movl	$9, %ebx
-	movb	$1, %al
-	testb	%al, %al
-	jne	.LBB1_4
-# BB#3:                                 # %label6
-	movl	%esp, %eax
-	leal	-16(%eax), %ecx
-	movl	%ecx, %esp
-	movl	$12, -16(%eax)
-	movl	$12, %ebx
-.LBB1_4:                                # %label7
-	cmpl	$7, %ebx
-	jl	.LBB1_6
-# BB#5:                                 # %label8
-	movl	%esp, %eax
-	leal	-16(%eax), %ecx
-	movl	%ecx, %esp
-	movl	$4, -16(%eax)
-	movl	$4, %edi
+# BB#1:                                 # %label5
+	movl	$3, %esi
+	movl	$9, %edi
 	subl	$16, %esp
 	movl	%esi, 4(%esp)
-	movl	$4, (%esp)
-	calll	fac
-	addl	$16, %esp
-.LBB1_6:                                # %label5
-	subl	$16, %esp
-	movl	%ebx, 4(%esp)
 	movl	$str1, (%esp)
 	calll	printf
 	addl	$16, %esp
-.LBB1_7:                                # %label3
+	cmpl	$9, %edi
+	jg	.LBB1_3
+# BB#2:                                 # %label7
 	subl	$16, %esp
 	movl	%edi, 4(%esp)
 	movl	$str2, (%esp)
 	calll	printf
 	addl	$16, %esp
+.LBB1_3:                                # %label8
+	cmpl	$4, %esi
+	jg	.LBB1_5
+# BB#4:                                 # %label9
 	subl	$16, %esp
 	movl	%esi, 4(%esp)
 	movl	$str3, (%esp)
 	calll	printf
 	addl	$16, %esp
+.LBB1_5:                                # %label10
+	subl	$16, %esp
+	movl	%esi, 4(%esp)
+	movl	$str4, (%esp)
+	calll	printf
+	addl	$16, %esp
+.LBB1_6:                                # %label6
 	xorl	%eax, %eax
-	leal	-12(%ebp), %esp
+	leal	-8(%ebp), %esp
 	popl	%esi
 	popl	%edi
-	popl	%ebx
 	popl	%ebp
 	ret
-.Ltmp10:
-	.size	main, .Ltmp10-main
+.Ltmp9:
+	.size	main, .Ltmp9-main
 	.cfi_endproc
 
 	.type	str,@object             # @str
@@ -158,6 +148,12 @@ str2:
 str3:
 	.asciz	"%d\n"
 	.size	str3, 4
+
+	.type	str4,@object            # @str4
+	.globl	str4
+str4:
+	.asciz	"%d\n"
+	.size	str4, 4
 
 
 	.section	".note.GNU-stack","",@progbits

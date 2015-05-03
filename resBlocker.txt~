@@ -3,59 +3,70 @@
  Programme(
 Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
 Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
-Print( Id( Id_name( a ) ) )
-IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
+IC( Def( Fn_name( fac ), [Id_name( i ),Id_name( j )],
 
  Programme(
-Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
-IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+Affectation( Id_name( c ),Valeur( Int( 5 ) ) )
+IC( If( Op_bin( Id( Id_name( c ) ),LessThan,Valeur( Int( 10 ) ) ),
 
  Programme(
-Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+Affectation( Id_name( c ),Id( Id_name( j ) ) )
 )
 
 )
  )
-Print( Id( Id_name( d ) ) )
+Print( Id( Id_name( c ) ) )
 )
 
 )
  )
-Print( Id( Id_name( a ) ) )
-Print( Id( Id_name( b ) ) )
+Expr( Call( Fn_name( fac ), [Id( Id_name( a ) ),Id( Id_name( b ) )] ) )
 )
-filsTrue : 
-filsFalse : 
-filsSuite : 
+filsTrue : (label1 , NoFils) 
+filsFalse : (label1 , NoFils) 
+filsSuite : (label1 , NoFils) 
+variables : ( label1 : [  ])
+phis : 
+( label1 : )
 
- Programme(
-Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
-Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
-Print( Id( Id_name( a ) ) )
-IC( If( Op_bin( Valeur( Int( 6 ) ),LessThan,Id( Id_name( b ) ) ),
 
  Programme(
 Label( label1 )
-Affectation( Id_name( d ),Valeur( Int( 12 ) ) )
-IC( If( Op_bin( Id( Id_name( d ) ),LessThan,Valeur( Int( 30 ) ) ),
+Affectation( Id_name( a ),Valeur( Int( 3 ) ) )
+Affectation( Id_name( b ),Valeur( Int( 9 ) ) )
+IC( Def( Fn_name( fac ), [Id_name( i ),Id_name( j )],
+
+ Programme(
+Label( label2 )
+Affectation( Id_name( c ),Valeur( Int( 5 ) ) )
+IC( If( Op_bin( Id( Id_name( c ) ),LessThan,Valeur( Int( 10 ) ) ),
 
  Programme(
 Label( label3 )
-Affectation( Id_name( d ),Valeur( Int( 9 ) ) )
+Affectation( Id_name( c ),Id( Id_name( j ) ) )
 )
 
 )
  )
 Label( label4 )
-Print( Id( Id_name( d ) ) )
+Phi( Id_name( c ) -- label1 -- label3 )
+Phi( Id_name( b ) -- label1 -- label3 )
+Phi( Id_name( a ) -- label1 -- label3 )
+Print( Id( Id_name( c ) ) )
 )
 
 )
  )
-Label( label2 )
-Print( Id( Id_name( a ) ) )
-Print( Id( Id_name( b ) ) )
+Expr( Call( Fn_name( fac ), [Id( Id_name( a ) ),Id( Id_name( b ) )] ) )
 )
-filsTrue : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
-filsFalse : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
-filsSuite : (label4 , NoFils) (label1 , NoFils) (label3 , NoFils) (label2 , NoFils) 
+filsTrue : (label4 , NoFils) (label1 , label3) (label3 , NoFils) (label2 , NoFils) 
+filsFalse : (label4 , NoFils) (label1 , label4) (label3 , NoFils) (label2 , NoFils) 
+filsSuite : (label4 , NoFils) (label1 , NoFils) (label3 , label4) (label2 , NoFils) 
+variables : ( label4 : [ c ; b ; a ])( label1 : [ c ; b ; a ])( label3 : [ c ; b ; a ])( label2 : [ j ; i ])
+phis : 
+( label4 : { a : label1 - label3 } { b : label1 - label3 } { c : label1 - label3 } )
+( label4 : )
+( label1 : )
+( label3 : )
+( label2 : )
+

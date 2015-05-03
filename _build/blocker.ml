@@ -35,7 +35,7 @@ type tree = {
 (* => permettra d'initialiser les Hashtbl à la bonne taille *)
 let rec countIf : programme -> int = function
 	| Instr_complexe(If(_,sousprog))::suite -> 1 + (countIf sousprog) + (countIf suite)
-	| Instr_complexe(Def(_,_,sousprog))::suite -> (countIf sousprog) + (countIf suite)
+	| Instr_complexe(Def(_,_,sousprog))::suite -> 1 + (countIf sousprog) + (countIf suite)
 	|	anyInstr::suite -> (countIf suite)
 	| [] -> 0
 let countLabels prog = 1 + 2 * (countIf prog)
@@ -119,14 +119,22 @@ let rec makeLabels curentLabel myTree : programme -> (tree * programme) = functi
 					)
 			)
 	(* autres instructions : l'arbre reste inchangé, on continue *)
-	| Instr_complexe(Def(b,c,sousprog))::suite -> 
-			let mlSousProg = makeLabels curentLabel myTree sousprog in
+	| Instr_complexe(Def(b,params,sousprog))::suite -> 
+			let lbInitSousProg = new_label () in
+			let _ = Hashtbl.add myTree.filsTrue lbInitSousProg NoFils in
+			let _ = Hashtbl.add myTree.filsFalse lbInitSousProg NoFils in
+			let _ = Hashtbl.add myTree.filsSuite lbInitSousProg NoFils in
+			(* ((string list) -> Id_name(string) -> (string list)) -> (string list) -> Id_name(string) list -> (string list) *)
+			let myParamsList = List.fold_left (fun aList anId -> (match anId with Id_name(idName) -> idName::aList)) [] params in
+			let _ = Hashtbl.add myTree.variables lbInitSousProg myParamsList in
+			let _ = Hashtbl.add myTree.phis lbInitSousProg (Hashtbl.create 10) in
+			let mlSousProg = makeLabels lbInitSousProg myTree sousprog in
 			(match mlSousProg with 
 				(newTree, newSousprog) -> 
 					let mlSuite = makeLabels curentLabel newTree suite in
 					(match mlSuite with
 						(newNewTree, newSuite) ->
-					 		(newNewTree, Instr_complexe(Def(b,c,newSousprog))::newSuite)
+					 		(newNewTree, Instr_complexe(Def(b,params,Label(lbInitSousProg)::newSousprog))::newSuite)
 					)
 			)
 	|	anyInstr::suite -> 
@@ -257,4 +265,4 @@ let printTree myTree =
 				let _ = printTree newTreeWithPhis in
 				()
 		)
-	)()*)
+	)() *)

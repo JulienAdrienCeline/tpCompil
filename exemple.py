@@ -1,19 +1,16 @@
 a = 3
 b = 9
 def fac(i,j):
- print i + j
-fac(a,b)
-print a
-if(6 < b):
+ c = 5
  d = 12
- a = 8
- if(d < 30):
-  d = 9
-  if(d < 6):
-   d = 12
-  if(d > 6):
-   a = 4
-   fac(a,b)
- print d
-print a
-print b
+ if(c < 10):
+  print d
+ print c
+fac(a,b)
+if(a < 10):
+ print a
+ if(b < 10):
+  print b
+ if(a < 5):
+  print a
+ print a
