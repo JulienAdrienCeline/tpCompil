@@ -2,6 +2,10 @@ open Ast
 open Parser
 open Ast_printer
 type label = string
+(* generation d'un nom de label *)
+let new_label =
+  let c = ref 0 in
+  (fun () -> incr c; "label" ^ string_of_int !c)
 
 
 (* Arbre ternaire, à chaque if on crée un noeud (= un label), chaque label a un fils true, un fils false et un fils suite *)

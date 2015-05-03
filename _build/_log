@@ -1,6 +1,6 @@
 ### Starting build.
 # Target: compiler.ml.depends, tags: { extension:ml, file:compiler.ml, ocaml, ocamldep, package(decap), quiet }
-/usr/bin/ocamldep -pp pa_ocaml -modules compiler.ml > compiler.ml.depends
+/usr/bin/ocamldep -pp pa_ocaml -modules compiler.ml > compiler.ml.depends # cached
 # Target: ast.ml.depends, tags: { extension:ml, file:ast.ml, ocaml, ocamldep, package(decap), quiet }
 /usr/bin/ocamldep -pp pa_ocaml -modules ast.ml > ast.ml.depends # cached
 # Target: ast.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:ast.cmo, file:ast.ml, implem, ocaml, package(decap), quiet }
@@ -22,7 +22,7 @@
 # Target: llvm.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:llvm.cmo, file:llvm.ml, implem, ocaml, package(decap), quiet }
 /usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o llvm.cmo llvm.ml # cached
 # Target: compiler.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:compiler.cmo, file:compiler.ml, implem, ocaml, package(decap), quiet }
-/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler.cmo compiler.ml
+/usr/bin/ocamlc -c -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml -pp pa_ocaml -o compiler.cmo compiler.ml # cached
 # Target: compiler.byte, tags: { byte, dont_link_with, extension:byte, file:compiler.byte, link, ocaml, package(decap), program, quiet }
-/usr/bin/ocamlc -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml unix.cma str.cma decap.cma ast.cmo ast_printer.cmo parser.cmo blocker.cmo llvm.cmo compiler.cmo -o compiler.byte
+/usr/bin/ocamlc -I /home/celine/.opam/system/lib/decap -I /usr/lib/ocaml unix.cma str.cma decap.cma ast.cmo ast_printer.cmo parser.cmo blocker.cmo llvm.cmo compiler.cmo -o compiler.byte # cached
 # Compilation successful.

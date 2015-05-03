@@ -1,10 +1,20 @@
 a = 3
 b = 9
+def fac(i):
+ i = i + 1
+ print i
+fac(a)
 print a
 if(6 < b):
  d = 12
+ a = 8
  if(d < 30):
   d = 9
+  if(d < 6):
+   d = 12
+  if(d > 6):
+   a = 4
+   fac(a)
  print d
 print a
 print b
