@@ -63,4 +63,5 @@
 		Videz le dossier tests
 		Dans le dossier tests, placez le fichier exemple.py de votre choix (utilisez les exemples de exemples/compilation ou écrivez vos propres programmes)
 		Entrez la commande sh build_avec_compilation.sh 
+		ATTENTION : si vous êtes en 64bits, veuillez changer la ligne 12, -march=x86 en -march=x86-64
 		Observez les résultats (fichiers resultat_???.* dans le dossier tests)
